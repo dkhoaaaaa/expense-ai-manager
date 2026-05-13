@@ -1,0 +1,7 @@
+Flask
+Flask-SQLAlchemy
+PyMySQL
+python-dotenv
+scikit-learn
+pandas
+numpy
