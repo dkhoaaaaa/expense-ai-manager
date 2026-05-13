@@ -1,131 +1,107 @@
-💸 Expense Manager AI
-    Web quản lý chi tiêu cá nhân tích hợp AI phân loại và dự đoán chi tiêu.
-
-🚀 Giới thiệu:
-    Expense Manager AI là một ứng dụng web giúp người dùng:
-        - Ghi lại các khoản thu/chi hằng ngày
-        - Tự động phân loại chi tiêu bằng AI
-        - Thống kê và trực quan hóa dữ liệu tài chính
-        - Dự đoán xu hướng chi tiêu trong tương lai
-
-👉 Mục tiêu: giúp người dùng hiểu rõ dòng tiền và quản lý tài chính hiệu quả hơn.
-
-🧠 Tính năng chính:
-1. Quản lý chi tiêu
-    - Thêm / sửa / xoá giao dịch
-    - Phân loại: ăn uống, mua sắm, học tập...
-    - Lọc theo ngày / tháng
-2. AI phân loại
-    - Nhập mô tả (vd: "ăn cơm tấm 35k")
-    - AI tự động phân loại
-    Hỗ trợ:
-    - Rule-based (keyword)
-    - Machine Learning (Naive Bayes / Logistic Regression)
-3. Thống kê
-    - Tổng chi theo tháng
-    - Biểu đồ (pie chart / bar chart)
-    - Top khoản chi lớn nhất
-4.  Dự đoán chi tiêu
-    - Dự đoán tổng chi tháng tiếp theo
-    - Phát hiện xu hướng tăng/giảm
-    - Cảnh báo overspending
-
-🏗️ Công nghệ sử dụng
-    Backend:
-        - Python (Flask)
-        - MySQL
-        - REST API
-    Frontend:
-        - HTML / CSS (Bootstrap) / JavaScript
-    AI / ML:
-        - scikit-learn
-        - pandas / numpy
-
-📁 Cấu trúc project
-expense-manager-ai/
-│
-├── app/                              # Thư mục chính chứa toàn bộ backend
-│
-│   ├── models/                      # (Model - M trong MVC)
-│   │   └── transaction.py           # Định nghĩa bảng Transaction trong MySQL
-│   │                                  (id, amount, description, category,...)
-│
-│   ├── views/                       # (View - V trong MVC)
-│   │   ├── static/                  # File tĩnh: CSS, JS, hình ảnh
-│   │   └── templates/               # HTML (render bằng Flask - Jinja2)
-│   │                                  → Giao diện người dùng
-│
-│   ├── routes/                      # (Routing layer - tách riêng cho clean)
-│   │   └── transaction_routes.py    # Định nghĩa URL (API endpoints)
-│   │                                  → map URL → controller
-│   │                                  → KHÔNG chứa logic xử lý
-│
-│   ├── controllers/                 # (Controller - C trong MVC)
-│   │   └── transaction_controller.py
-│   │                                  # Nhận request từ route
-│   │                                  # Validate dữ liệu
-│   │                                  # Gọi service xử lý
-│   │                                  # Trả response (JSON)
-│
-│   ├── services/                    # Business logic (xử lý nghiệp vụ chính)
-│   │   └── transaction_service.py
-│   │                                  # Logic chính:
-│   │                                  # - tạo giao dịch
-│   │                                  # - gọi AI phân loại
-│   │                                  # - lưu DB
-│   │                                  # - dự đoán chi tiêu
-│
-│   ├── ai/                          # Module AI / Machine Learning
-│   │   ├── classifier.py            # Phân loại chi tiêu (text → category)
-│   │   └── predictor.py             # Dự đoán chi tiêu tương lai
-│
-│   └── __init__.py                  # Khởi tạo Flask app
-│                                      # - load config
-│                                      # - connect database
-│                                      # - register routes
-│
-├── database/                        # Chứa file database
-│   └── db.sql                       # Script tạo bảng MySQL
-│
-├── .env                             # Biến môi trường (DB_USER, DB_PASSWORD,...)
-│
-├── run.py                           # Entry point (chạy server Flask)
-│
-├── requirements.txt                 # Danh sách thư viện cần cài
-│
-└── README.md                        # Tài liệu project
-
-⚙️ Cài đặt:
-1. Clone repo
-    git clone https://github.com/your-username/expense-manager-ai.git
-    cd expense-manager-ai
-2. Tạo môi trường ảo
-    python -m venv venv
-    venv\Scripts\activate
-3. Cài dependencies
-    pip install -r requirements.txt
-4. Setup MySQL
-    Import file:
-        - database/db.sql
-5. Cấu hình .env
-    DB_USER=root
-    DB_PASSWORD=123456
-    DB_HOST=localhost
-    DB_NAME=expense_db
-6. Chạy project
-    python run.py
-
-👉 Truy cập: http://127.0.0.1:5000
-
-🧠 Giải thích flow:
+# 💸 Expense Manager AI
+ 
+Một ứng dụng web giúp người dùng quản lý chi tiêu cá nhân, tích hợp AI tự động phân loại và dự đoán xu hướng chi tiêu, được phát triển bằng **Python (Flask)** và **Machine Learning**.
+ 
+## 🚀 Giới thiệu
+ 
+Expense Manager AI là một ứng dụng web giúp người dùng:
+ 
+* 📌 Ghi lại các khoản thu/chi hằng ngày
+* 🤖 Tự động phân loại chi tiêu bằng AI
+* 📊 Thống kê và trực quan hóa dữ liệu tài chính
+* 🔮 Dự đoán xu hướng chi tiêu trong tương lai
+> 👉 **Mục tiêu:** Giúp người dùng hiểu rõ dòng tiền và quản lý tài chính hiệu quả hơn.
+ 
+## ✨ Tính năng nổi bật
+ 
+* **💰 Quản lý giao dịch:** Thêm / sửa / xóa giao dịch thu chi, lọc theo ngày / tháng / danh mục.
+* **🤖 AI phân loại tự động:** Nhập mô tả tự nhiên (vd: *"ăn cơm tấm 35k"*) — AI tự nhận diện danh mục.
+  * **Rule-based:** Phân loại theo keyword có sẵn.
+  * **Machine Learning:** Naive Bayes / Logistic Regression.
+* **📊 Thống kê & Báo cáo:** Tổng chi theo tháng, biểu đồ Pie chart / Bar chart, top khoản chi lớn nhất.
+* **🔮 Dự đoán chi tiêu:** Dự báo tổng chi tháng tiếp theo, phát hiện xu hướng tăng/giảm.
+* **⚠️ Cảnh báo overspending:** Tự động cảnh báo khi chi tiêu vượt ngưỡng.
+## 🔄 Flow hoạt động
+ 
+```
 Client (Frontend)
-    ↓
-Route (map URL)
-    ↓
-Controller (nhận request / trả response)
-    ↓
-Service (xử lý logic)
-    ↓
-Model / AI (DB + Machine Learning)
-    ↓
-Response trả về client
+        ↓
+Route (map URL → Flask Blueprint)
+        ↓
+Controller (xử lý request / response)
+        ↓
+Service (business logic)
+        ↓
+Model + AI (Database + Machine Learning)
+        ↓
+Response trả về Client
+```
+ 
+## 🛠️ Công nghệ sử dụng
+ 
+* **Backend:** Python, Flask, REST API.
+* **Frontend:** HTML/CSS, Bootstrap, JavaScript.
+* **Database:** MySQL.
+* **AI / ML:** scikit-learn, pandas, numpy.
+* **Kiến trúc:** MVC (Model – View – Controller).
+## 📁 Cấu trúc dự án
+ 
+```
+expense-manager-ai/
+├── app/
+│   ├── models/                  # Model (M trong MVC)
+│   │   └── transaction.py
+│   ├── views/                   # View (V trong MVC)
+│   │   ├── static/              # CSS, JS, images
+│   │   └── templates/           # HTML (Jinja2)
+│   ├── routes/                  # Routing layer
+│   │   └── transaction_routes.py
+│   ├── controllers/             # Controller (C trong MVC)
+│   │   └── transaction_controller.py
+│   ├── services/                # Business logic
+│   └── ai/                      # AI / ML module
+│       ├── classifier.py
+│       └── predictor.py
+├── database/
+│   └── db.sql                   # Script MySQL
+├── init.py                      # Khởi tạo Flask app
+├── .env                         # Biến môi trường
+├── run.py                       # Entry point
+├── requirements.txt
+└── README.md
+```
+ 
+## ⚙️ Hướng dẫn cài đặt và chạy dự án
+ 
+1. **Clone repository:**
+   ```bash
+   git clone https://github.com/your-username/expense-manager-ai.git
+   cd expense-manager-ai
+   ```
+ 
+2. **Tạo môi trường ảo:**
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+ 
+3. **Cài dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+ 
+4. **Setup Database:** Import file `database/db.sql` vào MySQL.
+5. **Cấu hình `.env`:**
+   * Tạo file `.env` ở thư mục gốc với nội dung:
+   ```
+   DB_USER=root
+   DB_PASSWORD=123456
+   DB_HOST=localhost
+   DB_NAME=expense_db
+   ```
+ 
+6. **Khởi chạy ứng dụng:**
+   ```bash
+   python run.py
+   ```
+   * Mở trình duyệt và truy cập: `http://localhost:5000`
