@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản Lý Chi Tiêu AI</title>
+    <link rel="stylesheet" href="../static/css/landingPage.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg sticky-top navbar-custom">
+        <div class="container py-2">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <div class="logo-box">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div>
+                    <div class="brand-title">Quản Lý Chi Tiêu AI</div>
+                    <div class="brand-subtitle">Expense Manager AI</div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3">
+                    <li class="nav-item"><a class="nav-link" href="#features">Tính năng</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#how">Cách hoạt động</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#premium">Premium</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Liên hệ</a></li>
+                </ul>
+
+                <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
+                    <a href="/login" class="btn btn-ghost px-4 py-2">Đăng nhập</a>
+                    <a href="/register" class="btn btn-main px-4 py-2">Đăng ký miễn phí</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container hero-content">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="badge-soft">
+                        <i class="bi bi-stars"></i>
+                        Quản lý tài chính cá nhân thông minh hơn
+                    </div>
+
+                    <h1 class="hero-title">Kiểm soát chi tiêu của mày bằng sức mạnh AI</h1>
+
+                    <p class="hero-desc">
+                        Theo dõi thu chi, tự động phân loại giao dịch, xem báo cáo trực quan và dự đoán xu hướng chi tiêu trong tương lai.
+                    </p>
+
+                    <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
+                        <a href="/register" class="btn btn-main">
+                            Bắt đầu miễn phí <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                        <a href="#features" class="btn btn-ghost">Xem tính năng</a>
+                    </div>
+
+                    <div class="hero-checks">
+                        <span><i class="bi bi-check-circle-fill me-1"></i> Không cần thẻ</span>
+                        <span><i class="bi bi-check-circle-fill me-1"></i> Dễ dùng cho sinh viên</span>
+                        <span><i class="bi bi-check-circle-fill me-1"></i> Có AI hỗ trợ</span>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 position-relative">
+                    <div class="dashboard-card">
+                        <div class="d-flex justify-content-between align-items-start mb-4 gap-3">
+                            <div>
+                                <p class="text-secondary fw-bold mb-1 small">Tổng quan tháng này</p>
+                                <h3 class="fw-black mb-0">Tháng 05/2026</h3>
+                            </div>
+                            <span class="badge rounded-pill text-bg-success-subtle text-success px-3 py-2 fw-bold">AI đang phân tích</span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="mini-stat income">
+                                    <div class="label text-success">Tổng thu</div>
+                                    <div class="value">8.000.000đ</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mini-stat expense">
+                                    <div class="label text-danger">Tổng chi</div>
+                                    <div class="value">2.450.000đ</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mini-stat balance">
+                                    <div class="label text-primary">Số dư</div>
+                                    <div class="value">5.550.000đ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mt-2">
+                            <div class="col-lg-5">
+                                <div class="chart-box">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h6 class="fw-bold mb-0">Chi tiêu theo danh mục</h6>
+                                        <i class="bi bi-pie-chart-fill text-success fs-5"></i>
+                                    </div>
+
+                                    <div class="donut-chart">
+                                        <div class="donut-inner">
+                                            <div>
+                                                <div class="small text-secondary">Đã chi</div>
+                                                <div class="fw-black fs-4">31%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 small text-secondary">
+                                        <div class="d-flex justify-content-between mb-2"><span>Ăn uống</span><strong class="text-dark">38%</strong></div>
+                                        <div class="d-flex justify-content-between mb-2"><span>Học tập</span><strong class="text-dark">24%</strong></div>
+                                        <div class="d-flex justify-content-between"><span>Giải trí</span><strong class="text-dark">18%</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-7">
+                                <div class="transaction-box">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold mb-0">Giao dịch gần đây</h6>
+                                        <a href="#" class="small fw-bold text-success">Xem tất cả</a>
+                                    </div>
+
+                                    <div class="transaction-item">
+                                        <div><div class="transaction-title">Lương tháng</div><div class="transaction-category">Thu nhập</div></div>
+                                        <div class="amount-plus">+8.000.000đ</div>
+                                    </div>
+
+                                    <div class="transaction-item">
+                                        <div><div class="transaction-title">Ăn cơm tấm</div><div class="transaction-category">Ăn uống</div></div>
+                                        <div class="amount-minus">-35.000đ</div>
+                                    </div>
+
+                                    <div class="transaction-item">
+                                        <div><div class="transaction-title">Mua sách Python</div><div class="transaction-category">Học tập</div></div>
+                                        <div class="amount-minus">-120.000đ</div>
+                                    </div>
+
+                                    <div class="transaction-item mb-0">
+                                        <div><div class="transaction-title">Cafe với bạn</div><div class="transaction-category">Giải trí</div></div>
+                                        <div class="amount-minus">-45.000đ</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ai-alert">
+                        <div class="fw-bold text-warning mb-1">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Cảnh báo AI
+                        </div>
+                        <div class="small text-secondary">Chi tiêu ăn uống tăng 18% so với tuần trước.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section-padding">
+        <div class="container">
+            <div class="text-center mx-auto mb-5" style="max-width: 720px;">
+                <div class="section-label">Tính năng nổi bật</div>
+                <h2 class="section-title">Một app, đủ hết thứ bạn cần để quản lý tiền</h2>
+                <p class="section-desc mt-3">Tập trung vào các chức năng cơ bản trước, nhưng vẫn nhìn hiện đại như một sản phẩm thật.</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-wallet2"></i></div>
+                        <h3 class="feature-title">Quản lý thu chi</h3>
+                        <p class="feature-desc">Thêm, sửa, xoá các khoản thu nhập và chi tiêu hằng ngày một cách nhanh chóng.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-cpu-fill"></i></div>
+                        <h3 class="feature-title">AI phân loại giao dịch</h3>
+                        <p class="feature-desc">Nhập mô tả như “ăn cơm tấm 35k”, hệ thống tự nhận diện danh mục phù hợp.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-bar-chart-fill"></i></div>
+                        <h3 class="feature-title">Thống kê trực quan</h3>
+                        <p class="feature-desc">Theo dõi tổng thu, tổng chi, số dư và biểu đồ chi tiêu theo từng danh mục.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                        <h3 class="feature-title">Dự đoán chi tiêu</h3>
+                        <p class="feature-desc">AI phân tích xu hướng và cảnh báo khi chi tiêu có dấu hiệu vượt ngân sách.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how" class="section-padding how-section">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="section-label">Cách hoạt động</div>
+                    <h2 class="section-title">Chỉ 3 bước là biết tiền của bạn đang đi đâu</h2>
+                    <p class="section-desc mt-3">Người dùng không cần nhập quá nhiều thông tin. Cứ ghi giao dịch, AI sẽ hỗ trợ phần còn lại.</p>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div><h5 class="fw-black mb-1">Nhập giao dịch</h5><p class="mb-0 text-secondary small">Nhập số tiền, mô tả và ngày giao dịch.</p></div>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div><h5 class="fw-black mb-1">AI tự phân loại</h5><p class="mb-0 text-secondary small">Hệ thống nhận diện danh mục như ăn uống, học tập, mua sắm hoặc thu nhập.</p></div>
+                    </div>
+                    <div class="step-card mb-0">
+                        <div class="step-number">3</div>
+                        <div><h5 class="fw-black mb-1">Xem báo cáo tài chính</h5><p class="mb-0 text-secondary small">Theo dõi biểu đồ, số dư, khoản chi lớn và cảnh báo vượt ngân sách.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="premium" class="section-padding">
+        <div class="container">
+            <div class="text-center mx-auto mb-5" style="max-width: 720px;">
+                <div class="section-label">Gói sử dụng</div>
+                <h2 class="section-title">Có bản miễn phí, có Premium để nâng cấp sau</h2>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-5">
+                    <div class="pricing-card">
+                        <h3 class="fw-black fs-3">Miễn phí</h3>
+                        <p class="text-secondary mt-2">Phù hợp để bắt đầu quản lý thu chi cơ bản.</p>
+                        <div class="price">0đ</div>
+                        <ul class="benefit-list">
+                            <li><i class="bi bi-check-circle-fill"></i> Quản lý giao dịch cơ bản</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Thống kê thu chi</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Giới hạn lượt dùng AI</li>
+                        </ul>
+                        <a href="/register" class="btn btn-ghost w-100 mt-4">Bắt đầu</a>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="pricing-card dark">
+                        <div class="recommend-badge">Đề xuất</div>
+                        <h3 class="fw-black fs-3">Premium</h3>
+                        <p class="mt-2 text-white-50">Dành cho người muốn AI hỗ trợ nhiều hơn.</p>
+                        <div class="price">49.000đ<span class="fs-6 fw-semibold text-white-50">/tháng</span></div>
+                        <ul class="benefit-list">
+                            <li><i class="bi bi-check-circle-fill"></i> AI phân loại không giới hạn</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Dự đoán chi tiêu tháng tới</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Chatbot tư vấn tài chính</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Báo cáo nâng cao</li>
+                        </ul>
+                        <a href="/premium" class="btn btn-main w-100 mt-4 bg-success-subtle text-dark shadow-none">Nâng cấp Premium</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact" class="footer">
+        <div class="container">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <p class="mb-0"><strong class="text-dark">Quản Lý Chi Tiêu AI</strong> — Quản lý tài chính cá nhân thông minh hơn mỗi ngày.</p>
+                <div class="d-flex gap-4">
+                    <a href="#">Điều khoản</a>
+                    <a href="#">Bảo mật</a>
+                    <a href="#">Liên hệ</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
