@@ -2,6 +2,9 @@ Flask
 Flask-SQLAlchemy
 PyMySQL
 python-dotenv
+Flask-JWT-Extended
+Werkzeug
+email-validator
 scikit-learn
 pandas
 numpy
