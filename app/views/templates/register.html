@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Đăng ký - Quản Lý Chi Tiêu AI</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        />
+    </head>
+    <body>
+        <div id="container">
+            <div class="login">
+                <div class="content">
+                    <h1>Đăng ký</h1>
+
+                    {% if message %}
+                        <span class="auth-message">{{ message }}</span>
+                    {% endif %}
+
+                    <form method="post" action="{{ url_for('demo.register_page') }}">
+                        <input type="text" name="fullname" placeholder="Họ và tên" autocomplete="name" required />
+                        <input type="text" name="register_email" placeholder="Email hoặc Số điện thoại" autocomplete="username" required />
+                        <input type="password" name="register_password" placeholder="Mật khẩu" autocomplete="new-password" required />
+                        <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required />
+                        <span class="clearfix"></span>
+                        <button type="submit">Đăng ký</button>
+                    </form>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <span>Đã có tài khoản? <a href="{{ url_for('demo.login_page') }}" style="color: #4CAF50; font-weight: bold;">Đăng nhập ngay</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

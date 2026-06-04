@@ -62,3 +62,60 @@ async function predictExpense() {
         showResult("❌ Không thể dự đoán", "danger");
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("authModal");
+    const openButtons = document.querySelectorAll(".js-open-auth");
+    const closeButtons = document.querySelectorAll(".js-close-auth");
+    const tabs = document.querySelectorAll(".auth-tab");
+    const panels = document.querySelectorAll(".auth-panel");
+
+    if (!modal || !openButtons.length || !tabs.length || !panels.length) {
+        return;
+    }
+
+    const setActiveTab = (tabName) => {
+        tabs.forEach((tab) => {
+            tab.classList.toggle("is-active", tab.dataset.authTab === tabName);
+        });
+
+        panels.forEach((panel) => {
+            panel.classList.toggle("is-active", panel.dataset.authPanel === tabName);
+        });
+    };
+
+    const openModal = (tabName = "login") => {
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        setActiveTab(tabName);
+    };
+
+    const closeModal = () => {
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+    };
+
+    openButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            openModal(button.dataset.authTab || "login");
+        });
+    });
+
+    closeButtons.forEach((button) => {
+        button.addEventListener("click", closeModal);
+    });
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            setActiveTab(tab.dataset.authTab || "login");
+        });
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal.classList.contains("is-open")) {
+            closeModal();
+        }
+    });
+});

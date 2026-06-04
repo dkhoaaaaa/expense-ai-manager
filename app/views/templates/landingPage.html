@@ -38,9 +38,25 @@
                     <li class="nav-item"><a class="nav-link" href="#contact">Liên hệ</a></li>
                 </ul>
 
-                <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
-                    <a href="/login" class="btn btn-ghost px-4 py-2">Đăng nhập</a>
-                    <a href="/register" class="btn btn-main px-4 py-2">Đăng ký miễn phí</a>
+                <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0 align-items-lg-center">
+                    {% if session.get('user') %}
+                        <div class="d-flex align-items-center gap-3">
+                            <a href="#" class="text-decoration-none text-dark d-flex align-items-center gap-2" title="Xem hồ sơ" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                {% if session.get('user').anh_dai_dien %}
+                                    <img src="{{ url_for('static', filename=session.get('user').anh_dai_dien) }}" class="rounded-circle object-fit-cover shadow-sm" style="width: 36px; height: 36px;" alt="Avatar">
+                                {% else %}
+                                    <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                {% endif %}
+                                <span class="fw-semibold">{{ session.get('user').ho_ten | default('Người dùng') }}</span>
+                            </a>
+                            <a href="{{ url_for('demo.logout') }}" class="btn btn-outline-danger btn-sm px-3 py-2">Đăng xuất</a>
+                        </div>
+                    {% else %}
+                            <button type="button" class="btn btn-ghost px-4 py-2 js-open-auth" data-auth-tab="login">Đăng nhập</button>
+                            <button type="button" class="btn btn-main px-4 py-2 js-open-auth" data-auth-tab="register">Đăng ký miễn phí</button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -62,9 +78,9 @@
                     </p>
 
                     <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
-                        <a href="/register" class="btn btn-main">
+                        <button type="button" class="btn btn-main js-open-auth" data-auth-tab="register">
                             Bắt đầu miễn phí <i class="bi bi-arrow-right ms-2"></i>
-                        </a>
+                        </button>
                         <a href="#features" class="btn btn-ghost">Xem tính năng</a>
                     </div>
 
@@ -262,7 +278,7 @@
                             <li><i class="bi bi-check-circle-fill"></i> Thống kê thu chi</li>
                             <li><i class="bi bi-check-circle-fill"></i> Giới hạn lượt dùng AI</li>
                         </ul>
-                        <a href="/register" class="btn btn-ghost w-100 mt-4">Bắt đầu</a>
+                        <button type="button" class="btn btn-ghost w-100 mt-4 js-open-auth" data-auth-tab="register">Bắt đầu</button>
                     </div>
                 </div>
 
@@ -298,6 +314,549 @@
         </div>
     </footer>
 
+    <div id="authModal" class="auth-modal" aria-hidden="true">
+        <div class="auth-backdrop js-close-auth"></div>
+        <div class="auth-shell" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+            <button type="button" class="auth-close js-close-auth" aria-label="Đóng cửa sổ đăng nhập">&times;</button>
+
+                <div class="auth-tabs" role="tablist" aria-label="Đăng nhập hoặc đăng ký" style="display: none;">
+                <button type="button" class="auth-tab is-active" data-auth-tab="login">Đăng nhập</button>
+                <button type="button" class="auth-tab" data-auth-tab="register">Đăng ký</button>
+                <button type="button" class="auth-tab" data-auth-tab="forgot">Quên MK</button>
+            </div>
+
+            <div class="auth-panels">
+                <section class="auth-panel is-active" data-auth-panel="login">
+                    <div class="auth-panel-head">
+                        <p class="auth-kicker">Chào mừng quay lại</p>
+                        <h3 id="authModalTitle">Đăng nhập để tiếp tục</h3>
+                    </div>
+
+                    <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+                        <input type="text" name="email" placeholder="Email hoặc Số điện thoại" autocomplete="username" required oninput="this.style.borderColor=''; document.getElementById('loginError').classList.add('d-none');" />
+                        <div class="position-relative mb-3">
+                            <input type="password" id="loginPassword" name="password" placeholder="Mật khẩu" autocomplete="current-password" required oninput="this.style.borderColor=''; document.getElementById('loginError').classList.add('d-none');" style="margin-bottom: 0; padding-right: 40px; width: 100%;" />
+                            <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                        </div>
+                        <small id="loginError" class="text-danger d-block mb-2 d-none fw-bold"></small>
+                        <div class="auth-form-row">
+                            <label class="auth-check d-flex align-items-center gap-2 mb-0" style="cursor: pointer;">
+                                <input type="checkbox" name="remember" style="width: auto; margin-bottom: 0; cursor: pointer;" /> Ghi nhớ tôi
+                            </label>
+                            <a href="#" onclick="document.querySelector('.auth-tab[data-auth-tab=\'forgot\']').click(); return false;">Quên mật khẩu?</a>
+                        </div>
+                        <button type="submit" class="btn btn-main w-100">Đăng nhập</button>
+                        <div class="text-center mt-3">
+                            <span class="text-secondary small">Chưa có tài khoản?</span>
+                            <a href="#" class="small fw-bold text-success text-decoration-none" onclick="document.querySelector('.auth-tab[data-auth-tab=\'register\']').click(); return false;">Đăng ký ngay</a>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="auth-panel" data-auth-panel="register">
+                    <div class="auth-panel-head">
+                        <p class="auth-kicker">Bắt đầu miễn phí</p>
+                        <h3>Tạo tài khoản mới</h3>
+                    </div>
+
+                    <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+                        <input type="text" name="fullname" placeholder="Họ và tên" autocomplete="name" required />
+                        <input type="text" name="register_email" placeholder="Email hoặc Số điện thoại" autocomplete="username" required oninput="this.style.borderColor=''; document.getElementById('registerError').classList.add('d-none');" />
+                        <div class="position-relative mb-3">
+                            <input type="password" id="registerPassword" name="register_password" placeholder="Mật khẩu" autocomplete="new-password" required oninput="this.style.borderColor=''; document.getElementById('registerError').classList.add('d-none');" style="margin-bottom: 0; padding-right: 40px; width: 100%;" />
+                            <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                        </div>
+                        <div class="position-relative mb-3">
+                            <input type="password" id="registerConfirmPassword" name="confirm_password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required oninput="this.style.borderColor=''; document.getElementById('registerError').classList.add('d-none');" style="margin-bottom: 0; padding-right: 40px; width: 100%;" />
+                            <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                        </div>
+                        <small id="registerError" class="text-danger d-block mb-2 d-none fw-bold"></small>
+                        <button type="submit" class="btn btn-main w-100">Đăng ký</button>
+                        <div class="text-center mt-3">
+                            <span class="text-secondary small">Đã có tài khoản?</span>
+                            <a href="#" class="small fw-bold text-success text-decoration-none" onclick="document.querySelector('.auth-tab[data-auth-tab=\'login\']').click(); return false;">Đăng nhập ngay</a>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="auth-panel" data-auth-panel="forgot">
+                    <div class="auth-panel-head">
+                        <p class="auth-kicker">Khôi phục tài khoản</p>
+                        <h3>Quên mật khẩu</h3>
+                        <p>Nhập Email hoặc SĐT để nhận mã OTP và đặt lại mật khẩu mới.</p>
+                    </div>
+
+                    <!-- Bước 1: Nhập Email và OTP -->
+                    <div id="stepVerifyOTP">
+                        <div class="auth-form">
+                            <input type="text" id="reset_email" placeholder="Email hoặc Số điện thoại" autocomplete="username" required />
+                            
+                            <div class="d-flex gap-2 mt-2 mb-2">
+                                <input type="text" id="entered_otp" placeholder="Nhập mã OTP (6 số)" autocomplete="off" required style="margin-bottom: 0;" />
+                                <button type="button" id="btnGetOTP" class="btn btn-outline-success px-3" style="white-space: nowrap; width: 120px;" onclick="getOTP()">Nhận mã</button>
+                            </div>
+                            <small id="otpMessage" class="text-success d-block mb-2 d-none fw-bold"></small>
+
+                            <button type="button" class="btn btn-main w-100 mt-2" onclick="verifyOTP()">Xác nhận OTP</button>
+                            <div class="text-center mt-3">
+                                <a href="#" class="small fw-bold text-success text-decoration-none" onclick="document.querySelector('.auth-tab[data-auth-tab=\'login\']').click(); return false;">&larr; Quay lại đăng nhập</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bước 2: Nhập mật khẩu mới (ẩn mặc định) -->
+                    <div id="stepResetPassword" class="d-none">
+                        <form class="auth-form" onsubmit="handleResetPassword(event)">
+                            <input type="hidden" id="verified_email" name="email" />
+                            <div class="position-relative mb-3">
+                                <input type="password" id="resetNewPassword" name="new_password" placeholder="Mật khẩu mới" autocomplete="new-password" required oninput="this.style.borderColor=''; document.getElementById('resetError').classList.add('d-none');" style="margin-bottom: 0; padding-right: 40px; width: 100%;" />
+                                <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                            </div>
+                            <div class="position-relative mb-3">
+                                <input type="password" id="resetConfirmPassword" name="confirm_password" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" required oninput="this.style.borderColor=''; document.getElementById('resetError').classList.add('d-none');" style="margin-bottom: 0; padding-right: 40px; width: 100%;" />
+                                <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                            </div>
+                            <small id="resetError" class="d-block mb-2 d-none fw-bold"></small>
+                            
+                            <button type="submit" class="btn btn-main w-100 mt-2">Đổi mật khẩu</button>
+                            <div class="text-center mt-3">
+                                <a href="#" class="small fw-bold text-secondary text-decoration-none" onclick="document.getElementById('stepResetPassword').classList.add('d-none'); document.getElementById('stepVerifyOTP').classList.remove('d-none'); return false;">&larr; Quay lại</a>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    {% if session.get('user') %}
+    <!-- Modal Profile -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0 pb-4 px-4">
+                    {% if session.get('user').anh_dai_dien %}
+                        <img src="{{ url_for('static', filename=session.get('user').anh_dai_dien) }}" class="rounded-circle object-fit-cover mx-auto mb-3 shadow-sm d-block" style="width: 80px; height: 80px;" alt="Avatar">
+                    {% else %}
+                        <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3 shadow-sm" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- CHẾ ĐỘ XEM PROFILE -->
+                    <div id="profileView">
+                        <h4 class="fw-bold mb-1 text-center">{{ session.get('user').ho_ten }}</h4>
+                        <div class="mt-4 mb-4 text-start">
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span class="text-secondary">Họ và tên:</span>
+                                <span class="fw-semibold text-end">{{ session.get('user').ho_ten | default('Chưa cập nhật') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span class="text-secondary">Giới tính:</span>
+                                <span class="fw-semibold text-end">{{ session.get('user').gioi_tinh | default('Chưa cập nhật') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span class="text-secondary">Ngày sinh:</span>
+                                <span class="fw-semibold text-end">{{ session.get('user').ngay_sinh | default('Chưa cập nhật') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span class="text-secondary">SĐT:</span>
+                                <span class="fw-semibold text-end">{{ session.get('user').so_dien_thoai | default('Chưa cập nhật') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span class="text-secondary">Email:</span>
+                                <span class="fw-semibold text-end">{{ session.get('user').email | default('Chưa cập nhật') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2">
+                                <span class="text-secondary">CCCD:</span>
+                                <span class="fw-semibold text-end">{{ session.get('user').cccd | default('Chưa cập nhật') }}</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-success w-100 py-2 rounded-3 mb-2" onclick="document.getElementById('profileView').classList.add('d-none'); document.getElementById('profileEdit').classList.remove('d-none');">Cập nhật profile</button>
+                        <button type="button" class="btn btn-outline-warning w-100 py-2 rounded-3 mb-2" onclick="document.getElementById('profileView').classList.add('d-none'); document.getElementById('passwordEdit').classList.remove('d-none');">Đổi mật khẩu</button>
+                        <a href="{{ url_for('demo.logout') }}" class="btn btn-danger w-100 py-2 rounded-3">Đăng xuất</a>
+                    </div>
+
+                    <!-- CHẾ ĐỘ SỬA PROFILE -->
+                    <div id="profileEdit" class="d-none text-start">
+                        <form method="post" action="{{ url_for('demo.update_profile') }}" enctype="multipart/form-data">
+                            <div class="mb-2">
+                                <label class="form-label text-secondary small mb-1">Ảnh đại diện</label>
+                                <input type="file" name="anh_dai_dien" class="form-control form-control-sm" accept="image/*">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label text-secondary small mb-1">Họ và tên</label>
+                                <input type="text" name="ho_ten" class="form-control form-control-sm" value="{{ session.get('user').ho_ten if session.get('user').ho_ten != 'Chưa cập nhật' else '' }}" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label text-secondary small mb-1">Giới tính</label>
+                                <select name="gioi_tinh" class="form-select form-select-sm">
+                                    <option value="Chưa cập nhật" {% if session.get('user').gioi_tinh == 'Chưa cập nhật' %}selected{% endif %}>Chọn giới tính</option>
+                                    <option value="Nam" {% if session.get('user').gioi_tinh == 'Nam' %}selected{% endif %}>Nam</option>
+                                    <option value="Nữ" {% if session.get('user').gioi_tinh == 'Nữ' %}selected{% endif %}>Nữ</option>
+                                    <option value="Khác" {% if session.get('user').gioi_tinh == 'Khác' %}selected{% endif %}>Khác</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label text-secondary small mb-1">Ngày sinh</label>
+                                <input type="date" name="ngay_sinh" class="form-control form-control-sm" value="{{ session.get('user').ngay_sinh if session.get('user').ngay_sinh != 'Chưa cập nhật' else '' }}">
+                            </div>
+                            <div class="row mb-3 g-2">
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-secondary small mb-1">Số điện thoại</label>
+                                    <input type="text" name="so_dien_thoai" class="form-control form-control-sm" value="{{ session.get('user').so_dien_thoai if session.get('user').so_dien_thoai != 'Chưa cập nhật' else '' }}">
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label text-secondary small mb-1">CCCD</label>
+                                    <input type="text" name="cccd" class="form-control form-control-sm" value="{{ session.get('user').cccd if session.get('user').cccd != 'Chưa cập nhật' else '' }}">
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-secondary w-50 py-2 rounded-3" onclick="document.getElementById('profileEdit').classList.add('d-none'); document.getElementById('profileView').classList.remove('d-none');">Hủy</button>
+                                <button type="submit" class="btn btn-success w-50 py-2 rounded-3">Xác nhận</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- CHẾ ĐỘ ĐỔI MẬT KHẨU -->
+                    <div id="passwordEdit" class="d-none text-start">
+                        <form onsubmit="handleChangePassword(event)">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small mb-1">Mật khẩu hiện tại</label>
+                                <div class="position-relative">
+                                    <input type="password" id="changeCurrentPassword" name="current_password" class="form-control form-control-sm" style="padding-right: 35px;" required oninput="this.style.borderColor=''; document.getElementById('changeError').classList.add('d-none');">
+                                    <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-2" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small mb-1">Mật khẩu mới</label>
+                                <div class="position-relative">
+                                    <input type="password" id="changeNewPassword" name="new_password" class="form-control form-control-sm" style="padding-right: 35px;" required oninput="this.style.borderColor=''; document.getElementById('changeError').classList.add('d-none');">
+                                    <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-2" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small mb-1">Nhập lại mật khẩu mới</label>
+                                <div class="position-relative">
+                                    <input type="password" id="changeConfirmPassword" name="confirm_new_password" class="form-control form-control-sm" style="padding-right: 35px;" required oninput="this.style.borderColor=''; document.getElementById('changeError').classList.add('d-none');">
+                                    <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-2" style="cursor: pointer; color: #888;" onclick="togglePassword(this)"></i>
+                                </div>
+                            </div>
+                            <small id="changeError" class="d-block mb-3 d-none fw-bold"></small>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-secondary w-50 py-2 rounded-3" onclick="document.getElementById('passwordEdit').classList.add('d-none'); document.getElementById('profileView').classList.remove('d-none');">Hủy</button>
+                                <button type="submit" class="btn btn-warning w-50 py-2 rounded-3 text-dark fw-bold">Xác nhận</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/demo.js') }}" defer></script>
+    <script>
+        function getOTP() {
+            const emailInput = document.getElementById('reset_email');
+            if (!emailInput.value) {
+                alert('Vui lòng nhập Email hoặc Số điện thoại trước!');
+                emailInput.focus();
+                return;
+            }
+            
+            const btn = document.getElementById('btnGetOTP');
+            const msg = document.getElementById('otpMessage');
+            
+            // Gọi API sinh mã OTP
+            fetch("{{ url_for('demo.forgot_password_api') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailInput.value })
+            })
+            .then(res => res.json())
+            .then(data => {
+                msg.textContent = "Mã OTP của bạn là: " + data.otp;
+                msg.classList.remove('d-none');
+            });
+
+            // Đếm ngược 50s
+            let count = 50;
+            btn.disabled = true;
+            btn.textContent = count + "s";
+            
+            const timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    btn.textContent = count + "s";
+                } else {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.textContent = "Nhận mã";
+                }
+            }, 1000);
+        }
+
+        function verifyOTP() {
+            const emailInput = document.getElementById('reset_email').value;
+            const otpInput = document.getElementById('entered_otp').value;
+
+            if (!emailInput || !otpInput) {
+                alert('Vui lòng nhập Email/SĐT và mã OTP!');
+                return;
+            }
+
+            fetch("{{ url_for('demo.verify_otp_api') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailInput, otp: otpInput })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Khi mã đúng: Ẩn Bước 1, hiện Bước 2
+                    document.getElementById('verified_email').value = emailInput;
+                    document.getElementById('stepVerifyOTP').classList.add('d-none');
+                    document.getElementById('stepResetPassword').classList.remove('d-none');
+                    document.getElementById('otpMessage').classList.add('d-none');
+                    document.getElementById('entered_otp').value = '';
+                } else {
+                    alert('Mã OTP không chính xác hoặc đã hết hạn!');
+                }
+            });
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const form = event.target;
+            const email = form.email.value;
+            const password = form.password.value;
+            const errorMsg = document.getElementById('loginError');
+            const passwordInput = document.getElementById('loginPassword');
+            const emailInput = form.email;
+
+            if (email.includes('@')) {
+                const emailRegex = /^[^\s@]+@gmail\.com$/;
+                if (!emailRegex.test(email)) {
+                    errorMsg.textContent = "Email phải có định dạng @gmail.com!";
+                    errorMsg.classList.remove('d-none');
+                    emailInput.style.borderColor = 'red';
+                    return;
+                }
+            } else {
+                const phoneRegex = /^0\d{9}$/;
+                if (!phoneRegex.test(email)) {
+                    errorMsg.textContent = "Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số!";
+                    errorMsg.classList.remove('d-none');
+                    emailInput.style.borderColor = 'red';
+                    return;
+                }
+            }
+
+            if (password.length < 6 || !/^[a-zA-Z0-9]+$/.test(password)) {
+                errorMsg.textContent = "Sai tài khoản hoặc mật khẩu!";
+                errorMsg.classList.remove('d-none');
+                passwordInput.style.borderColor = 'red';
+                return;
+            }
+
+            fetch("{{ url_for('demo.api_login') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload(); // Tải lại trang sau khi đăng nhập thành công
+                } else {
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                    passwordInput.style.borderColor = 'red';
+                }
+            });
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const form = event.target;
+            const fullname = form.fullname.value;
+            const email = form.register_email.value;
+            const password = form.register_password.value;
+            const confirm_password = form.confirm_password.value;
+            
+            const errorMsg = document.getElementById('registerError');
+            const passInput = document.getElementById('registerPassword');
+            const confirmInput = document.getElementById('registerConfirmPassword');
+            const emailInput = form.register_email;
+
+            if (email.includes('@')) {
+                const emailRegex = /^[^\s@]+@gmail\.com$/;
+                if (!emailRegex.test(email)) {
+                    errorMsg.textContent = "Email phải có định dạng @gmail.com!";
+                    errorMsg.classList.remove('d-none');
+                    emailInput.style.borderColor = 'red';
+                    return;
+                }
+            } else {
+                const phoneRegex = /^0\d{9}$/;
+                if (!phoneRegex.test(email)) {
+                    errorMsg.textContent = "Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số!";
+                    errorMsg.classList.remove('d-none');
+                    emailInput.style.borderColor = 'red';
+                    return;
+                }
+            }
+
+            if (password.length < 6) {
+                errorMsg.textContent = "Mật khẩu phải có ít nhất 6 ký tự!";
+                errorMsg.classList.remove('d-none');
+                passInput.style.borderColor = 'red';
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9]+$/.test(password)) {
+                errorMsg.textContent = "Mật khẩu không được chứa ký tự đặc biệt!";
+                errorMsg.classList.remove('d-none');
+                passInput.style.borderColor = 'red';
+                return;
+            }
+
+            if (password !== confirm_password) {
+                errorMsg.textContent = "Mật khẩu không khớp!";
+                errorMsg.classList.remove('d-none');
+                passInput.style.borderColor = 'red';
+                confirmInput.style.borderColor = 'red';
+                return;
+            }
+
+            fetch("{{ url_for('demo.api_register') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullname: fullname, email: email, password: password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                }
+            });
+        }
+
+        function handleResetPassword(event) {
+            event.preventDefault();
+            const form = event.target;
+            const email = form.email.value;
+            const new_password = form.new_password.value;
+            const confirm_password = form.confirm_password.value;
+
+            const errorMsg = document.getElementById('resetError');
+            const newPasswordInput = document.getElementById('resetNewPassword');
+            const confirmPasswordInput = document.getElementById('resetConfirmPassword');
+
+            if (new_password !== confirm_password) {
+                errorMsg.textContent = "Mật khẩu mới không khớp!";
+                errorMsg.classList.remove('text-success');
+                errorMsg.classList.add('text-danger');
+                errorMsg.classList.remove('d-none');
+                newPasswordInput.style.borderColor = 'red';
+                confirmPasswordInput.style.borderColor = 'red';
+                return;
+            }
+
+            fetch("{{ url_for('demo.api_reset_password') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, new_password: new_password, confirm_password: confirm_password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    errorMsg.classList.remove('text-danger');
+                    errorMsg.classList.add('text-success');
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    errorMsg.classList.remove('text-success');
+                    errorMsg.classList.add('text-danger');
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                    newPasswordInput.style.borderColor = 'red';
+                    confirmPasswordInput.style.borderColor = 'red';
+                }
+            });
+        }
+
+        function handleChangePassword(event) {
+            event.preventDefault();
+            const form = event.target;
+            const current_password = form.current_password.value;
+            const new_password = form.new_password.value;
+            const confirm_new_password = form.confirm_new_password.value;
+
+            const errorMsg = document.getElementById('changeError');
+            const currentPasswordInput = document.getElementById('changeCurrentPassword');
+            const newPasswordInput = document.getElementById('changeNewPassword');
+            const confirmPasswordInput = document.getElementById('changeConfirmPassword');
+
+            if (new_password !== confirm_new_password) {
+                errorMsg.textContent = "Mật khẩu mới không khớp!";
+                errorMsg.classList.remove('text-success');
+                errorMsg.classList.add('text-danger');
+                errorMsg.classList.remove('d-none');
+                newPasswordInput.style.borderColor = 'red';
+                confirmPasswordInput.style.borderColor = 'red';
+                return;
+            }
+
+            fetch("{{ url_for('demo.api_change_password') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_password: current_password, new_password: new_password, confirm_new_password: confirm_new_password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    errorMsg.classList.remove('text-danger');
+                    errorMsg.classList.add('text-success');
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    errorMsg.classList.remove('text-success');
+                    errorMsg.classList.add('text-danger');
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                    if (data.message.includes("hiện tại")) {
+                        currentPasswordInput.style.borderColor = 'red';
+                    } else {
+                        newPasswordInput.style.borderColor = 'red';
+                        confirmPasswordInput.style.borderColor = 'red';
+                    }
+                }
+            });
+        }
+
+        function togglePassword(iconElement) {
+            const input = iconElement.previousElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconElement.classList.remove('bi-eye-slash');
+                iconElement.classList.add('bi-eye');
+            } else {
+                input.type = 'password';
+                iconElement.classList.remove('bi-eye');
+                iconElement.classList.add('bi-eye-slash');
+            }
+        }
+    </script>
 </body>
 </html>
