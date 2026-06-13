@@ -71,3 +71,24 @@ body {
     background-color: #059669;
     border-color: #059669;
 }
+
+/* =========================================
+   Responsive cho màn hình điện thoại (Mobile) 
+   ========================================= */
+@media (max-width: 768px) {
+    .custom-nav-pills {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto; /* Cho phép cuộn ngang menu */
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .custom-nav-pills .nav-link {
+        text-align: center;
+        margin-right: 10px;
+        margin-bottom: 0;
+        white-space: nowrap; /* Không xuống dòng text của menu */
+    }
+}
