@@ -4,15 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quản Lý Chi Tiêu AI</title>
-    <link rel="stylesheet" href="../static/css/landingPage.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landingPage.css') }}">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .modal-custom-input {
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            padding: 12px 16px;
+            font-size: 15px;
+        }
+        .modal-custom-input:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        .profile-link {
+            transition: color 0.2s;
+        }
+        .profile-link:hover { color: #10b981 !important; }
+    </style>
 </head>
 <body>
+
+    <!-- Hiển thị thông báo (Flash Messages) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container mt-4 position-fixed top-0 start-50 translate-middle-x" style="z-index: 9999; max-width: 500px;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+              <strong>Thông báo: </strong> {{ message | safe }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
     <nav class="navbar navbar-expand-lg sticky-top navbar-custom">
         <div class="container py-2">
@@ -38,9 +68,18 @@
                     <li class="nav-item"><a class="nav-link" href="#contact">Liên hệ</a></li>
                 </ul>
 
-                <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
-                    <a href="/login" class="btn btn-ghost px-4 py-2">Đăng nhập</a>
-                    <a href="/register" class="btn btn-main px-4 py-2">Đăng ký miễn phí</a>
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3 mt-3 mt-lg-0">
+                    <!-- Kiểm tra nếu đã đăng nhập -->
+                    {% if jwt_user %}
+                        <a href="/profile" class="text-decoration-none text-dark d-flex align-items-center gap-2 fw-semibold profile-link">
+                            <img src="{{ jwt_user.avatar }}" alt="Avatar" class="rounded-circle shadow-sm" width="36" height="36">
+                            <span>{{ jwt_user.name }}</span>
+                        </a>
+                        <a href="/logout" class="btn btn-outline-danger btn-sm px-3 py-1 fw-bold rounded-pill">Đăng xuất</a>
+                    {% else %}
+                        <a href="#" class="btn btn-ghost px-4 py-2" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
+                        <a href="#" class="btn btn-main px-4 py-2" data-bs-toggle="modal" data-bs-target="#registerModal">Đăng ký miễn phí</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -62,7 +101,7 @@
                     </p>
 
                     <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
-                        <a href="/register" class="btn btn-main">
+                        <a href="#" class="btn btn-main" data-bs-toggle="modal" data-bs-target="#registerModal">
                             Bắt đầu miễn phí <i class="bi bi-arrow-right ms-2"></i>
                         </a>
                         <a href="#features" class="btn btn-ghost">Xem tính năng</a>
@@ -262,7 +301,7 @@
                             <li><i class="bi bi-check-circle-fill"></i> Thống kê thu chi</li>
                             <li><i class="bi bi-check-circle-fill"></i> Giới hạn lượt dùng AI</li>
                         </ul>
-                        <a href="/register" class="btn btn-ghost w-100 mt-4">Bắt đầu</a>
+                        <a href="#" class="btn btn-ghost w-100 mt-4" data-bs-toggle="modal" data-bs-target="#registerModal">Bắt đầu</a>
                     </div>
                 </div>
 
@@ -278,7 +317,15 @@
                             <li><i class="bi bi-check-circle-fill"></i> Chatbot tư vấn tài chính</li>
                             <li><i class="bi bi-check-circle-fill"></i> Báo cáo nâng cao</li>
                         </ul>
-                        <a href="/premium" class="btn btn-main w-100 mt-4 bg-success-subtle text-dark shadow-none">Nâng cấp Premium</a>
+                        {% if jwt_user %}
+                            {% if jwt_user.role == 'PREMIUM' or jwt_user.role == 'ADMIN' %}
+                                <button class="btn btn-secondary w-100 mt-4 shadow-none" disabled>Đang sử dụng Premium</button>
+                            {% else %}
+                                <a href="/upgrade-premium" class="btn btn-main w-100 mt-4 bg-success-subtle text-dark shadow-none">Nâng cấp Premium ngay</a>
+                            {% endif %}
+                        {% else %}
+                            <a href="#" class="btn btn-main w-100 mt-4 bg-success-subtle text-dark shadow-none" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập để nâng cấp</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -297,6 +344,117 @@
             </div>
         </div>
     </footer>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; padding: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="mx-auto mb-3" style="width: 48px; height: 48px; border-radius: 16px; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <h3 class="fw-bold">Chào mừng trở lại!</h3>
+                        <p class="text-muted">Đăng nhập để quản lý chi tiêu của bạn</p>
+                    </div>
+                    <form action="/login" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" name="email" class="form-control form-control-lg modal-custom-input" placeholder="Nhập email của bạn" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Mật khẩu</label>
+                            <input type="password" name="password" class="form-control form-control-lg modal-custom-input" placeholder="Nhập mật khẩu" required>
+                            <div class="text-end mt-2">
+                                <a href="#" class="text-success text-decoration-none small fw-semibold" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">Quên mật khẩu?</a>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-main w-100 btn-lg mb-3">Đăng nhập</button>
+                    </form>
+                    <div class="text-center">
+                        <span class="text-muted">Chưa có tài khoản?</span> 
+                        <a href="#" class="text-success fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#registerModal">Đăng ký ngay</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; padding: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="mx-auto mb-3" style="width: 48px; height: 48px; border-radius: 16px; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <h3 class="fw-bold">Tạo tài khoản mới</h3>
+                        <p class="text-muted">Bắt đầu quản lý tài chính hiệu quả với AI</p>
+                    </div>
+                    <form action="/register" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Họ và tên</label>
+                            <input type="text" name="name" class="form-control form-control-lg modal-custom-input" placeholder="Nhập họ và tên" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" name="email" class="form-control form-control-lg modal-custom-input" placeholder="Nhập email của bạn" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mật khẩu</label>
+                            <input type="password" name="password" class="form-control form-control-lg modal-custom-input" placeholder="Tạo mật khẩu" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
+                            <input type="password" name="confirm_password" class="form-control form-control-lg modal-custom-input" placeholder="Nhập lại mật khẩu" required>
+                        </div>
+                        <button type="submit" class="btn btn-main w-100 btn-lg mb-3">Đăng ký</button>
+                    </form>
+                    <div class="text-center">
+                        <span class="text-muted">Đã có tài khoản?</span> 
+                        <a href="#" class="text-success fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; padding: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="mx-auto mb-3" style="width: 48px; height: 48px; border-radius: 16px; background: #f59e0b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);">
+                            <i class="bi bi-key"></i>
+                        </div>
+                        <h3 class="fw-bold">Khôi phục mật khẩu</h3>
+                        <p class="text-muted">Nhập email đăng ký để nhận liên kết khôi phục</p>
+                    </div>
+                    <form action="/forgot-password" method="POST">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Email của bạn</label>
+                            <input type="email" name="email" class="form-control form-control-lg modal-custom-input" placeholder="vd: ban@gmail.com" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100 btn-lg mb-3 text-white fw-bold shadow-none" style="background-color: #f59e0b; border: none;">Gửi liên kết</button>
+                    </form>
+                    <div class="text-center">
+                        <a href="#" class="text-secondary fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal"><i class="bi bi-arrow-left me-1"></i> Quay lại đăng nhập</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

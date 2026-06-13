@@ -1,0 +1,73 @@
+body {
+    font-family: "Be Vietnam Pro", sans-serif;
+    color: #0f172a;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 10px 16px;
+    border: 1px solid #cbd5e1;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.custom-nav-pills .nav-link {
+    color: #475569;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 8px;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.custom-nav-pills .nav-link:hover {
+    background-color: #f1f5f9;
+}
+
+.custom-nav-pills .nav-link.active {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.avatar-img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #10b981;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 2px solid #fff;
+    transition: 0.2s;
+}
+
+.avatar-upload-btn:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.btn-success {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+.btn-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
