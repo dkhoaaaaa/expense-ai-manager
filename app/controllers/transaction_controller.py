@@ -1,4 +1,10 @@
 from flask import request, jsonify
+from app.services import transaction_service
+from datetime import datetime
+from app.models.transaction import Transaction
+from app import db
+from sqlalchemy import extract, func
+
 
 # 👉 Import Rule-based cho USER và Logistic Regression cho PREMIUM
 from app.ai.classifier import RuleBasedClassifier, LogisticRegressionClassifier
@@ -77,3 +83,158 @@ def classify_transaction():
 
     except Exception as e:
         return jsonify({"status": "error", "message": f"Lỗi Server: {str(e)}"}), 500
+
+
+
+# ➕ ADD
+def create_transaction():
+    data = request.json
+    t = transaction_service.create_transaction(data)
+
+    return jsonify({
+        "message": "Created successfully",
+        "id": t.id
+    })
+
+
+# 📥 GET
+def get_transactions():
+    filters = request.args.to_dict()
+    data = transaction_service.get_transactions(filters)
+
+    return jsonify([
+        {
+            "id": t.id,
+            "amount": t.amount,
+            "type": t.type,
+            "category_id": t.category_id,
+            "description": t.description
+        }
+        for t in data
+    ])
+
+
+# ❌ DELETE
+def delete_transaction(id):
+    transaction_service.delete_transaction(id)
+    return jsonify({"message": "Deleted"})
+
+def search_transactions():
+    keyword = request.args.get("q")
+
+    data = transaction_service.search_transactions(keyword)
+
+    return jsonify([
+        {
+            "id": t.id,
+            "amount": t.amount,
+            "description": t.description
+        }
+        for t in data
+    ])
+
+
+def filter_transactions():
+    """
+    GET /api/transactions/filter
+    query params:
+    - date=YYYY-MM-DD
+    - month=MM
+    - year=YYYY
+    - category_id
+    """
+    query = Transaction.query
+
+    date = request.args.get("date")
+    month = request.args.get("month")
+    year = request.args.get("year")
+    category_id = request.args.get("category_id")
+
+    if date:
+        try:
+            d = datetime.strptime(date, "%Y-%m-%d").date()
+            query = query.filter(db.func.date(Transaction.created_at) == d)
+        except:
+            pass
+
+    if month:
+       query = query.filter(extract("month", Transaction.created_at) == int(month))
+    if year:
+       query = query.filter(extract("year", Transaction.created_at) == int(year))
+    if category_id:
+        query = query.filter(Transaction.category_id == int(category_id))
+    data = query.all()
+
+    return jsonify([
+        {
+            "id": t.id,
+            "amount": t.amount,
+            "type": t.type,
+            "category_id": t.category_id,
+            "description": t.description,
+            "date": str(t.created_at)
+        }
+        for t in data
+    ])
+
+def dashboard_summary():
+    transactions = Transaction.query.all()
+
+    total_income = sum(t.amount for t in transactions if t.type == "INCOME")
+    total_expense = sum(t.amount for t in transactions if t.type == "EXPENSE")
+    balance = total_income - total_expense
+
+    # group by category
+    category_stats = {}
+
+    for t in transactions:
+        cat = t.category_id
+        category_stats[cat] = category_stats.get(cat, 0) + t.amount
+
+    return jsonify({
+        "total_income": total_income,
+        "total_expense": total_expense,
+        "balance": balance,
+        "category_stats": category_stats
+    })
+
+def top_expenses():
+    expenses = Transaction.query.filter_by(type="EXPENSE").order_by(Transaction.amount.desc()).limit(5).all()
+
+    return jsonify([
+        {
+            "id": t.id,
+            "amount": t.amount,
+            "description": t.description,
+            "category_id": t.category_id
+        }
+        for t in expenses
+    ])
+
+def income_expense_summary():
+    income = db.session.query(func.sum(Transaction.amount))\
+        .filter(Transaction.type == "INCOME").scalar() or 0
+
+    expense = db.session.query(func.sum(Transaction.amount))\
+        .filter(Transaction.type == "EXPENSE").scalar() or 0
+
+    return jsonify({
+        "income": income,
+        "expense": expense,
+        "balance": income - expense
+    })
+
+def update_transaction(transaction_id):
+    data = request.json
+
+    t = transaction_service.update_transaction(
+        transaction_id,
+        data
+    )
+
+    if not t:
+        return jsonify({"message": "Not found"}), 404
+
+    return jsonify({
+        "message": "Updated successfully"
+    })
