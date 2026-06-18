@@ -1,1 +1,4 @@
-# File __init__.py được để trống. Logic khởi tạo đã chuyển sang app/main.py
+from app.main import create_app
+
+# Chỉ định rõ hàm create_app sẽ được export ra khi package này được gọi
+__all__ = ['create_app']
