@@ -1,9 +1,10 @@
 from flask import request, jsonify
-from app.services import transaction_service
+from app.services.user import transaction_service
 from datetime import datetime
-from app.models.transaction import Transaction
+from app.models.giaoDichModel import GiaoDich as Transaction
 from app import db
 from sqlalchemy import extract, func
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 # 👉 Import Rule-based cho USER và Logistic Regression cho PREMIUM
@@ -13,6 +14,7 @@ from app.ai.classifier import RuleBasedClassifier, LogisticRegressionClassifier
 rule_classifier = RuleBasedClassifier()
 lr_classifier = LogisticRegressionClassifier(model_path='app/ai/models/lr_expense_model.pkl')
 
+@jwt_required()
 def classify_transaction():
     """
     API Endpoint: /api/transactions/classify
@@ -87,9 +89,11 @@ def classify_transaction():
 
 
 # ➕ ADD
+@jwt_required()
 def create_transaction():
+    user_id = get_jwt_identity()
     data = request.json
-    t = transaction_service.create_transaction(data)
+    t = transaction_service.create_transaction(user_id, data)
 
     return jsonify({
         "message": "Created successfully",
@@ -98,42 +102,55 @@ def create_transaction():
 
 
 # 📥 GET
+@jwt_required()
 def get_transactions():
+    user_id = get_jwt_identity()
     filters = request.args.to_dict()
-    data = transaction_service.get_transactions(filters)
+    data = transaction_service.get_transactions(user_id, filters)
 
     return jsonify([
         {
             "id": t.id,
-            "amount": t.amount,
+            "amount": float(t.amount),
             "type": t.type,
             "category_id": t.category_id,
-            "description": t.description
+            "description": t.description,
+            "date": str(t.ngayGiaoDich)
         }
         for t in data
     ])
 
 
 # ❌ DELETE
+@jwt_required()
 def delete_transaction(id):
-    transaction_service.delete_transaction(id)
+    user_id = get_jwt_identity()
+    result = transaction_service.delete_transaction(user_id, id)
+    if not result:
+        return jsonify({"message": "Not found or unauthorized"}), 404
     return jsonify({"message": "Deleted"})
 
+@jwt_required()
 def search_transactions():
+    user_id = get_jwt_identity()
     keyword = request.args.get("q")
 
-    data = transaction_service.search_transactions(keyword)
+    data = transaction_service.search_transactions(user_id, keyword)
 
     return jsonify([
         {
             "id": t.id,
-            "amount": t.amount,
-            "description": t.description
+            "amount": float(t.amount),
+            "description": t.description,
+            "type": t.type,
+            "category_id": t.category_id,
+            "date": str(t.ngayGiaoDich)
         }
         for t in data
     ])
 
 
+@jwt_required()
 def filter_transactions():
     """
     GET /api/transactions/filter
@@ -143,7 +160,8 @@ def filter_transactions():
     - year=YYYY
     - category_id
     """
-    query = Transaction.query
+    user_id = get_jwt_identity()
+    query = Transaction.query.filter_by(idTK=user_id)
 
     date = request.args.get("date")
     month = request.args.get("month")
@@ -153,35 +171,37 @@ def filter_transactions():
     if date:
         try:
             d = datetime.strptime(date, "%Y-%m-%d").date()
-            query = query.filter(db.func.date(Transaction.created_at) == d)
+            query = query.filter(Transaction.ngayGiaoDich == d)
         except:
             pass
 
     if month:
-       query = query.filter(extract("month", Transaction.created_at) == int(month))
+       query = query.filter(extract("month", Transaction.ngayGiaoDich) == int(month))
     if year:
-       query = query.filter(extract("year", Transaction.created_at) == int(year))
+       query = query.filter(extract("year", Transaction.ngayGiaoDich) == int(year))
     if category_id:
-        query = query.filter(Transaction.category_id == int(category_id))
+         query = query.filter(Transaction.category_id == int(category_id))
     data = query.all()
 
     return jsonify([
         {
             "id": t.id,
-            "amount": t.amount,
+            "amount": float(t.amount),
             "type": t.type,
             "category_id": t.category_id,
             "description": t.description,
-            "date": str(t.created_at)
+            "date": str(t.ngayGiaoDich)
         }
         for t in data
     ])
 
+@jwt_required()
 def dashboard_summary():
-    transactions = Transaction.query.all()
+    user_id = get_jwt_identity()
+    transactions = Transaction.query.filter_by(idTK=user_id).all()
 
-    total_income = sum(t.amount for t in transactions if t.type == "INCOME")
-    total_expense = sum(t.amount for t in transactions if t.type == "EXPENSE")
+    total_income = sum(t.amount for t in transactions if t.loai == "THU")
+    total_expense = sum(t.amount for t in transactions if t.loai == "CHI")
     balance = total_income - total_expense
 
     # group by category
@@ -189,51 +209,62 @@ def dashboard_summary():
 
     for t in transactions:
         cat = t.category_id
-        category_stats[cat] = category_stats.get(cat, 0) + t.amount
+        if cat:
+            category_stats[cat] = category_stats.get(cat, 0.0) + float(t.amount)
 
     return jsonify({
-        "total_income": total_income,
-        "total_expense": total_expense,
-        "balance": balance,
+        "total_income": float(total_income),
+        "total_expense": float(total_expense),
+        "balance": float(balance),
         "category_stats": category_stats
     })
 
+@jwt_required()
 def top_expenses():
-    expenses = Transaction.query.filter_by(type="EXPENSE").order_by(Transaction.amount.desc()).limit(5).all()
+    user_id = get_jwt_identity()
+    expenses = Transaction.query.filter_by(idTK=user_id, loai="CHI").order_by(Transaction.soTien.desc()).limit(5).all()
 
     return jsonify([
         {
             "id": t.id,
-            "amount": t.amount,
+            "amount": float(t.amount),
             "description": t.description,
-            "category_id": t.category_id
+            "category_id": t.category_id,
+            "date": str(t.ngayGiaoDich)
         }
         for t in expenses
     ])
 
+@jwt_required()
 def income_expense_summary():
-    income = db.session.query(func.sum(Transaction.amount))\
-        .filter(Transaction.type == "INCOME").scalar() or 0
+    user_id = get_jwt_identity()
+    income = db.session.query(func.sum(Transaction.soTien))\
+        .filter(Transaction.idTK == user_id)\
+        .filter(Transaction.loai == "THU").scalar() or 0
 
-    expense = db.session.query(func.sum(Transaction.amount))\
-        .filter(Transaction.type == "EXPENSE").scalar() or 0
+    expense = db.session.query(func.sum(Transaction.soTien))\
+        .filter(Transaction.idTK == user_id)\
+        .filter(Transaction.loai == "CHI").scalar() or 0
 
     return jsonify({
-        "income": income,
-        "expense": expense,
-        "balance": income - expense
+        "income": float(income),
+        "expense": float(expense),
+        "balance": float(income - expense)
     })
 
+@jwt_required()
 def update_transaction(transaction_id):
+    user_id = get_jwt_identity()
     data = request.json
 
     t = transaction_service.update_transaction(
+        user_id,
         transaction_id,
         data
     )
 
     if not t:
-        return jsonify({"message": "Not found"}), 404
+        return jsonify({"message": "Not found or unauthorized"}), 404
 
     return jsonify({
         "message": "Updated successfully"

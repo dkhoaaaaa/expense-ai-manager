@@ -1,0 +1,1824 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Quản Lý Chi Tiêu AI</title>
+    <meta
+      name="description"
+      content="Bảng điều khiển quản trị hệ thống Quản Lý Chi Tiêu AI - Thống kê, quản lý người dùng, giao dịch và AI Model."
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- Google Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/admin/homeAdmin.css') }}"
+    />
+  </head>
+
+  <body>
+    <div class="admin-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="logo-box">
+            <i class="bi bi-wallet2"></i>
+          </div>
+          <div class="brand-info">
+            <h1 class="brand-title">Expense AI</h1>
+            <p class="brand-subtitle">Admin Control Panel</p>
+          </div>
+          <button class="sidebar-close-btn d-lg-none" id="sidebarClose">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <nav class="menu">
+          <p class="menu-title">QUẢN TRỊ</p>
+          <a
+            href="#"
+            class="menu-item active"
+            data-tab="overview"
+            id="nav-overview"
+          >
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Tổng quan</span>
+          </a>
+          <a href="#" class="menu-item" data-tab="users" id="nav-users">
+            <i class="bi bi-people-fill"></i>
+            <span>Người dùng</span>
+          </a>
+          <a
+            href="#"
+            class="menu-item"
+            data-tab="transactions"
+            id="nav-transactions"
+          >
+            <i class="bi bi-credit-card-fill"></i>
+            <span>Giao dịch</span>
+          </a>
+          <a
+            href="#"
+            class="menu-item"
+            data-tab="categories"
+            id="nav-categories"
+          >
+            <i class="bi bi-tags-fill"></i>
+            <span>Danh mục</span>
+          </a>
+
+          <p class="menu-title">KINH DOANH</p>
+          <a href="#" class="menu-item" data-tab="premium" id="nav-premium">
+            <i class="bi bi-gem"></i>
+            <span>Gói Premium</span>
+          </a>
+          <a href="#" class="menu-item" data-tab="payments" id="nav-payments">
+            <i class="bi bi-cash-stack"></i>
+            <span>Thanh toán</span>
+          </a>
+
+          <p class="menu-title">HỆ THỐNG AI</p>
+          <a href="#" class="menu-item" data-tab="ai" id="nav-ai">
+            <i class="bi bi-cpu-fill"></i>
+            <span>AI Model</span>
+          </a>
+          <a href="#" class="menu-item" data-tab="chatbot" id="nav-chatbot">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span>Chatbot Logs</span>
+          </a>
+
+          <p class="menu-title">PHÂN TÍCH</p>
+          <a href="#" class="menu-item" data-tab="reports" id="nav-reports">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            <span>Báo cáo</span>
+          </a>
+
+          <p class="menu-title">TÙY CHỌN</p>
+          <a href="#" class="menu-item" data-tab="settings" id="nav-settings">
+            <i class="bi bi-gear-fill"></i>
+            <span>Cài đặt</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer d-flex flex-column gap-2">
+          <div class="admin-profile-info d-flex align-items-center gap-2 w-100">
+            <div class="admin-avatar" id="adminAvatarLetter">A</div>
+            <div class="admin-meta overflow-hidden">
+              <p class="admin-name text-truncate" id="adminName">
+                Administrator
+              </p>
+              <p class="admin-email text-truncate" id="adminEmail">
+                admin@example.com
+              </p>
+            </div>
+          </div>
+          <button
+            class="btn btn-logout-full w-100 mt-2"
+            id="logoutBtn"
+            title="Đăng xuất"
+          >
+            <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT CONTAINER -->
+      <main class="main" id="main-content">
+        <!-- TOPBAR -->
+        <header class="topbar">
+          <div class="topbar-left d-flex align-items-center">
+            <button
+              class="sidebar-toggle-btn d-lg-none me-2"
+              id="sidebarToggle"
+            >
+              <i class="bi bi-list"></i>
+            </button>
+            <div class="d-flex flex-column">
+              <p class="breadcrumb-text mb-0">
+                Admin / <span id="currentTabLabel">Tổng quan</span>
+              </p>
+              <small class="topbar-subtitle text-muted" style="font-size: 11px"
+                >Bảng điều khiển hệ thống</small
+              >
+            </div>
+          </div>
+
+          <div class="topbar-center">
+            <div class="topbar-search">
+              <i class="bi bi-search topbar-search-icon"></i>
+              <input
+                type="text"
+                class="topbar-search-input"
+                id="globalSearch"
+                placeholder="Tìm user, email, giao dịch..."
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div class="topbar-right">
+            <!-- Light/Dark Mode Switcher -->
+            <button class="icon-btn" id="themeToggle" title="Đổi giao diện">
+              <i class="bi bi-moon-stars" id="themeIcon"></i>
+            </button>
+            <!-- Notifications Button -->
+            <button
+              class="icon-btn position-relative"
+              id="notificationsBtn"
+              title="Thông báo"
+            >
+              <i class="bi bi-bell"></i>
+              <span
+                class="position-absolute top-2 start-75 translate-middle p-1 bg-danger border border-light rounded-circle"
+              >
+                <span class="visually-hidden">New alerts</span>
+              </span>
+            </button>
+          </div>
+        </header>
+
+        <!-- MAIN DYNAMIC CONTENT -->
+        <div class="content">
+          <!-- 1. OVERVIEW / DASHBOARD PANEL (Active by default) -->
+          <section class="tab-pane active-pane" id="tab-overview">
+            <!-- Greeting & Quick Actions -->
+            <div
+              class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4"
+            >
+              <div class="dashboard-greeting">
+                <h2 class="greeting-title">
+                  Xin chào, <span id="greetingAdminName">Administrator</span> 👋
+                </h2>
+                <p class="greeting-subtitle text-muted mb-0">
+                  Theo dõi toàn bộ hoạt động của hệ thống Expense AI Manager
+                  trong hôm nay.
+                </p>
+              </div>
+              <div class="d-flex gap-2">
+                <button
+                  class="btn btn-secondary-glow px-3 py-2 text-primary border-primary bg-primary-soft"
+                  id="btnExportReport"
+                >
+                  <i class="bi bi-file-earmark-arrow-down me-1"></i>Xuất báo cáo
+                </button>
+                <button
+                  class="btn btn-primary-gradient px-3 py-2"
+                  id="btnTrainAI"
+                >
+                  <i class="bi bi-cpu me-1"></i>Huấn luyện AI
+                </button>
+              </div>
+            </div>
+
+            <!-- Stat Cards Row -->
+            <div class="row g-4 mb-4">
+              <!-- Card 1: Tổng người dùng -->
+              <div class="col-md-6 col-xl-3">
+                <div
+                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <span class="stat-title-new text-muted fw-bold"
+                      >Tổng người dùng</span
+                    >
+                    <div class="stat-icon-square bg-blue-light text-primary">
+                      <i class="bi bi-people-fill"></i>
+                    </div>
+                  </div>
+                  <h3 class="stat-value-new fw-bold mb-2" id="stat-total-users">
+                    0
+                  </h3>
+                  <span
+                    class="badge badge-trend-new bg-blue-soft text-primary"
+                    id="trend-users"
+                  >
+                    <i class="bi bi-arrow-up-right me-1"></i>+12 người dùng mới
+                    hôm nay
+                  </span>
+                </div>
+              </div>
+              <!-- Card 2: User Premium -->
+              <div class="col-md-6 col-xl-3">
+                <div
+                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <span class="stat-title-new text-muted fw-bold"
+                      >User Premium</span
+                    >
+                    <div class="stat-icon-square bg-yellow-light text-warning">
+                      <i class="bi bi-crown-fill"></i>
+                    </div>
+                  </div>
+                  <h3
+                    class="stat-value-new fw-bold mb-2"
+                    id="stat-premium-users"
+                  >
+                    0
+                  </h3>
+                  <span
+                    class="badge badge-trend-new bg-yellow-soft text-warning"
+                    id="trend-premium"
+                  >
+                    Chiếm 26.1% tổng user
+                  </span>
+                </div>
+              </div>
+              <!-- Card 3: Giao dịch tháng này -->
+              <div class="col-md-6 col-xl-3">
+                <div
+                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <span class="stat-title-new text-muted fw-bold"
+                      >Giao dịch tháng này</span
+                    >
+                    <div class="stat-icon-square bg-emerald-light text-success">
+                      <i class="bi bi-credit-card-fill"></i>
+                    </div>
+                  </div>
+                  <h3
+                    class="stat-value-new fw-bold mb-2"
+                    id="stat-total-transactions"
+                  >
+                    0
+                  </h3>
+                  <span
+                    class="badge badge-trend-new bg-emerald-soft text-success"
+                    id="trend-transactions"
+                  >
+                    <i class="bi bi-arrow-up-right me-1"></i>+18.4% so với tháng
+                    trước
+                  </span>
+                </div>
+              </div>
+              <!-- Card 4: Doanh thu Premium -->
+              <div class="col-md-6 col-xl-3">
+                <div
+                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <span class="stat-title-new text-muted fw-bold"
+                      >Doanh thu Premium</span
+                    >
+                    <div class="stat-icon-square bg-purple-light text-purple">
+                      <i class="bi bi-wallet2"></i>
+                    </div>
+                  </div>
+                  <h3
+                    class="stat-value-new fw-bold mb-2"
+                    id="stat-total-revenue"
+                  >
+                    0đ
+                  </h3>
+                  <span
+                    class="badge badge-trend-new bg-purple-soft text-purple"
+                    id="trend-revenue"
+                  >
+                    32 giao dịch thanh toán mới
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row g-4 mb-4">
+              <!-- Line Chart: Tăng trưởng người dùng -->
+              <div class="col-lg-8">
+                <div class="chart-card card-glow">
+                  <div class="chart-header">
+                    <h4 class="chart-title">Tăng trưởng người dùng</h4>
+                    <span class="chart-subtitle text-muted"
+                      >Số lượng user đăng ký theo tháng</span
+                    >
+                  </div>
+                  <div class="chart-wrapper">
+                    <canvas id="userGrowthChart"></canvas>
+                  </div>
+                </div>
+              </div>
+              <!-- Donut Chart: Tỷ lệ tài khoản -->
+              <div class="col-lg-4">
+                <div class="chart-card card-glow">
+                  <div class="chart-header">
+                    <h4 class="chart-title">Tỷ lệ tài khoản</h4>
+                    <span class="chart-subtitle text-muted"
+                      >Phân bổ tài khoản hệ thống</span
+                    >
+                  </div>
+                  <div class="chart-wrapper">
+                    <canvas id="userPremiumRatioChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Tables & Users List -->
+            <div class="row g-4 mb-4">
+              <!-- Giao dịch gần đây -->
+              <div class="col-lg-7">
+                <div class="chart-card card-glow h-100">
+                  <div
+                    class="d-flex align-items-center justify-content-between mb-3"
+                  >
+                    <h4 class="chart-title mb-0">Giao dịch gần đây</h4>
+                    <span class="badge bg-primary-soft text-primary"
+                      ><i class="bi bi-clock-history me-1"></i>Mới nhất</span
+                    >
+                  </div>
+                  <div class="table-responsive">
+                    <table
+                      class="table table-hover align-middle custom-table mb-0"
+                    >
+                      <thead>
+                        <tr>
+                          <th>Người dùng</th>
+                          <th>Loại</th>
+                          <th>Danh mục</th>
+                          <th>Số tiền</th>
+                          <th>Ngày</th>
+                          <th>Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dashRecentTxnBody">
+                        <tr>
+                          <td colspan="6" class="text-center text-muted py-4">
+                            <div
+                              class="spinner-border spinner-border-sm text-success"
+                              role="status"
+                            ></div>
+                            Đang tải...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- Người dùng mới -->
+              <div class="col-lg-5">
+                <div class="chart-card card-glow h-100">
+                  <div
+                    class="d-flex align-items-center justify-content-between mb-3"
+                  >
+                    <h4 class="chart-title mb-0">Người dùng mới</h4>
+                    <span class="badge bg-info-soft text-info"
+                      ><i class="bi bi-person-plus me-1"></i>Hôm nay</span
+                    >
+                  </div>
+                  <div class="new-users-list" id="dashNewUsersList">
+                    <div class="text-center py-4 text-muted">
+                      <div
+                        class="spinner-border spinner-border-sm text-success"
+                        role="status"
+                      ></div>
+                      Đang tải...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 4: AI Model & Alerts -->
+            <div class="row g-4 mb-4">
+              <!-- Trạng thái AI Model -->
+              <div class="col-lg-5">
+                <div class="chart-card card-glow h-100">
+                  <div
+                    class="d-flex align-items-center justify-content-between mb-3"
+                  >
+                    <h4 class="chart-title mb-0">Trạng thái AI Model</h4>
+                    <span
+                      class="badge bg-success-soft text-success"
+                      id="aiStatusBadge"
+                      ><i class="bi bi-check-circle me-1"></i>Hoạt động</span
+                    >
+                  </div>
+                  <div class="ai-info-wrapper">
+                    <ul
+                      class="list-group list-group-flush mb-3"
+                      style="font-size: 13.5px"
+                    >
+                      <li
+                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
+                      >
+                        <span class="text-muted">Model hiện tại:</span>
+                        <strong id="dashAiModel">Logistic Regression</strong>
+                      </li>
+                      <li
+                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
+                      >
+                        <span class="text-muted">Số mẫu training:</span>
+                        <strong id="dashAiSamples">2,450</strong>
+                      </li>
+                      <li
+                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
+                      >
+                        <span class="text-muted">Lần train gần nhất:</span>
+                        <strong id="dashAiLastTrained">04/06/2026</strong>
+                      </li>
+                      <li
+                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
+                      >
+                        <span class="text-muted"
+                          >Tổng lần phân loại hôm nay:</span
+                        >
+                        <strong id="dashAiClassifiedToday">586</strong>
+                      </li>
+                    </ul>
+
+                    <!-- Accuracy Progress -->
+                    <div class="mb-3">
+                      <div
+                        class="d-flex justify-content-between mb-1"
+                        style="font-size: 12px"
+                      >
+                        <span class="text-muted">Accuracy:</span>
+                        <strong class="text-success" id="dashAiAccuracy"
+                          >87.5%</strong
+                        >
+                      </div>
+                      <div class="progress progress-custom" style="height: 6px">
+                        <div
+                          class="progress-bar bg-success"
+                          id="progressAccuracy"
+                          role="progressbar"
+                          style="width: 87.5%"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <!-- Confidence Progress -->
+                    <div class="mb-4">
+                      <div
+                        class="d-flex justify-content-between mb-1"
+                        style="font-size: 12px"
+                      >
+                        <span class="text-muted">Confidence trung bình:</span>
+                        <strong class="text-primary" id="dashAiConfidence"
+                          >82%</strong
+                        >
+                      </div>
+                      <div class="progress progress-custom" style="height: 6px">
+                        <div
+                          class="progress-bar bg-primary"
+                          id="progressConfidence"
+                          role="progressbar"
+                          style="width: 82%"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                      <button
+                        class="btn btn-primary-gradient w-50 py-2"
+                        id="btnRetrainAIModal"
+                        style="font-size: 12px"
+                      >
+                        <i class="bi bi-arrow-repeat me-1"></i>Train lại model
+                      </button>
+                      <button
+                        class="btn btn-secondary-glow w-50 py-2 border-primary text-primary bg-primary-soft"
+                        id="btnUploadTraining"
+                        style="font-size: 12px"
+                      >
+                        <i class="bi bi-upload me-1"></i>Upload dữ liệu
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cảnh báo hệ thống -->
+              <div class="col-lg-7">
+                <div class="chart-card card-glow h-100">
+                  <div
+                    class="d-flex align-items-center justify-content-between mb-3"
+                  >
+                    <h4 class="chart-title mb-0">Cảnh báo hệ thống</h4>
+                    <span
+                      class="badge bg-danger-soft text-danger"
+                      id="alertCountBadge"
+                      ><i class="bi bi-exclamation-triangle me-1"></i>0 cảnh
+                      báo</span
+                    >
+                  </div>
+                  <div class="system-alerts-list" id="dashSystemAlertsList">
+                    <div class="text-center py-4 text-muted">
+                      <div
+                        class="spinner-border spinner-border-sm text-success"
+                        role="status"
+                      ></div>
+                      Đang tải...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 5: Chatbot Logs ngắn -->
+            <div class="row g-4 mb-4">
+              <div class="col-12">
+                <div class="chart-card card-glow">
+                  <div
+                    class="d-flex align-items-center justify-content-between mb-3"
+                  >
+                    <h4 class="chart-title mb-0">Hoạt động Chatbot gần đây</h4>
+                    <span class="badge bg-secondary-soft text-muted"
+                      ><i class="bi bi-chat-left-text me-1"></i>Thời gian
+                      thực</span
+                    >
+                  </div>
+                  <div class="table-responsive">
+                    <table
+                      class="table table-hover align-middle custom-table mb-0"
+                    >
+                      <thead>
+                        <tr>
+                          <th>User</th>
+                          <th>Câu hỏi gần nhất</th>
+                          <th>Thời gian</th>
+                          <th>Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dashChatbotLogsBody">
+                        <tr>
+                          <td colspan="4" class="text-center text-muted py-4">
+                            <div
+                              class="spinner-border spinner-border-sm text-success"
+                              role="status"
+                            ></div>
+                            Đang tải...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. USERS PANEL -->
+          <section class="tab-pane d-none" id="tab-users">
+            <div class="chart-card card-glow">
+              <div
+                class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4"
+              >
+                <h4 class="chart-title mb-0">Quản lý danh sách Người dùng</h4>
+                <div class="d-flex flex-wrap gap-2">
+                  <input
+                    type="text"
+                    class="form-control table-search-input"
+                    id="searchUsersInput"
+                    placeholder="Tìm email hoặc họ tên..."
+                  />
+                  <select
+                    class="form-select table-filter-select"
+                    id="filterUsersRole"
+                  >
+                    <option value="ALL">Tất cả vai trò</option>
+                    <option value="USER">USER</option>
+                    <option value="PREMIUM">PREMIUM</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                  <select
+                    class="form-select table-filter-select"
+                    id="filterUsersStatus"
+                  >
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="BANNED">BANNED</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Tổng người dùng</small>
+                    <strong class="text-primary fs-4" id="userTotalCount">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">User thường</small>
+                    <strong class="text-success fs-4" id="normalUserCount">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">User Premium</small>
+                    <strong class="text-warning fs-4" id="premiumUserCount">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Tài khoản bị khóa</small>
+                    <strong class="text-danger fs-4" id="bannedUserCount">0</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle custom-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Họ tên</th>
+                      <th>Vai trò</th>
+                      <th>Trạng thái</th>
+                      <th>Ngày đăng ký</th>
+                      <th class="text-end">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center text-muted py-4">
+                        Không có dữ liệu người dùng để hiển thị.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. TRANSACTIONS PANEL -->
+          <section class="tab-pane d-none" id="tab-transactions">
+            <div class="chart-card card-glow">
+              <div
+                class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4"
+              >
+                <h4 class="chart-title mb-0">Lịch sử giao dịch hệ thống</h4>
+                <div class="d-flex flex-wrap gap-2">
+                  <input
+                    type="text"
+                    class="form-control table-search-input"
+                    id="searchTxnInput"
+                    placeholder="Tìm email, danh mục, mô tả..."
+                  />
+                  <select
+                    class="form-select table-filter-select"
+                    id="filterTxnType"
+                  >
+                    <option value="ALL">Tất cả loại giao dịch</option>
+                    <option value="THU">Thu nhập (THU)</option>
+                    <option value="CHI">Chi tiêu (CHI)</option>
+                  </select>
+                  <select
+                    class="form-select table-filter-select"
+                    id="filterTxnCategory"
+                  >
+                    <option value="ALL">Tất cả danh mục</option>
+                  </select>
+                  <input
+                    type="date"
+                    class="form-control table-search-input"
+                    id="txnFromDate"
+                  />
+                  <input
+                    type="date"
+                    class="form-control table-search-input"
+                    id="txnToDate"
+                  />
+                </div>
+              </div>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Tổng số giao dịch</small>
+                    <strong class="text-primary fs-4" id="transactionTotalCount">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Tổng thu</small>
+                    <strong class="text-success fs-4" id="transactionTotalIncome">0 ₫</strong>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Tổng chi</small>
+                    <strong class="text-danger fs-4" id="transactionTotalExpense">0 ₫</strong>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">AI phân loại</small>
+                    <strong class="text-warning fs-4" id="transactionAiCount">0</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle custom-table">
+                  <thead>
+                    <tr>
+                      <th>ID giao dịch</th>
+                      <th>Email người dùng</th>
+                      <th>Họ tên</th>
+                      <th>Danh mục</th>
+                      <th>Loại giao dịch</th>
+                      <th>Số tiền</th>
+                      <th>Mô tả</th>
+                      <th>Ngày giao dịch</th>
+                      <th>Phân loại bởi</th>
+                      <th>Độ tin cậy AI</th>
+                      <th class="text-end">Chi tiết</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactionsTableBody">
+                    <tr>
+                      <td colspan="11" class="text-center text-muted py-4">
+                        Không có dữ liệu giao dịch để hiển thị.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. PREMIUM PANEL -->
+          <section class="tab-pane d-none" id="tab-premium">
+            <div class="chart-card card-glow">
+              <div
+                class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4"
+              >
+                <div>
+                  <h4 class="chart-title mb-1">Gói Premium</h4>
+                  <p class="text-muted mb-0">
+                    Quản lý tài khoản Premium, hạn sử dụng, trạng thái, khóa/hủy
+                    hoặc gia hạn gói.
+                  </p>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block"
+                      >Premium đang hoạt động</small
+                    >
+                    <strong class="text-primary fs-4" id="premiumActiveCount">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block">Sắp hết hạn</small>
+                    <strong class="text-warning fs-4" id="premiumExpiringCount">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block">Đã hủy / hết hạn</small>
+                    <strong class="text-danger fs-4" id="premiumExpiredCount">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="searchPremiumInput"
+                    placeholder="Tìm email hoặc họ tên"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <select class="form-select" id="filterPremiumStatus">
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="EXPIRED">EXPIRED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-responsive mt-4">
+                <table class="table table-hover align-middle custom-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Họ tên</th>
+                      <th>Tên gói</th>
+                      <th>Trạng thái</th>
+                      <th>Ngày bắt đầu</th>
+                      <th>Ngày kết thúc</th>
+                      <th class="text-end">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="premiumTableBody">
+                    <tr>
+                      <td colspan="8" class="text-center text-muted py-4">
+                        Không có dữ liệu Premium để hiển thị.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4.1 PAYMENT PANEL -->
+          <section class="tab-pane d-none" id="tab-payments">
+            <div class="chart-card card-glow">
+              <div
+                class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4"
+              >
+                <div>
+                  <h4 class="chart-title mb-1">Thanh toán</h4>
+                  <p class="text-muted mb-0">
+                    Xem lịch sử thanh toán, trạng thái thành công/thất bại/đang
+                    chờ và phương thức thanh toán.
+                  </p>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Tổng doanh thu</small>
+                    <h5 class="fw-bold mb-0" id="paymentRevenueTotal">0 ₫</h5>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Payment SUCCESS</small>
+                    <h5 class="fw-bold mb-0 text-success" id="paymentSuccessCount">0</h5>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Payment PENDING</small>
+                    <h5 class="fw-bold mb-0 text-warning" id="paymentPendingCount">0</h5>
+                  </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <div class="result-item-card h-100">
+                    <small class="text-muted d-block mb-1">Payment FAILED</small>
+                    <h5 class="fw-bold mb-0 text-danger" id="paymentFailedCount">0</h5>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6 col-xl-3">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="searchPaymentsInput"
+                    placeholder="Tìm email, họ tên, mã giao dịch"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <select
+                    class="form-select"
+                    id="filterPaymentStatus"
+                  >
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="SUCCESS">SUCCESS</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="FAILED">FAILED</option>
+                  </select>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="paymentFromDate"
+                  />
+                </div>
+                <div class="col-md-6 col-xl-3">
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="paymentToDate"
+                  />
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle custom-table">
+                  <thead>
+                    <tr>
+                      <th>Mã giao dịch</th>
+                      <th>Email</th>
+                      <th>Họ tên</th>
+                      <th>Số tiền</th>
+                      <th>Phương thức thanh toán</th>
+                      <th>Trạng thái</th>
+                      <th>Ngày thanh toán</th>
+                      <th class="text-end">Chi tiết</th>
+                    </tr>
+                  </thead>
+                  <tbody id="paymentsTableBody">
+                    <tr>
+                      <td colspan="8" class="text-center text-muted py-4">
+                        Không có dữ liệu thanh toán để hiển thị.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4.2 CATEGORY PANEL -->
+          <section class="tab-pane d-none" id="tab-categories">
+            <div class="chart-card card-glow">
+              <div
+                class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4"
+              >
+                <div>
+                  <h4 class="chart-title mb-1">Quản lý danh mục</h4>
+                  <p class="text-muted mb-0">
+                    Quản lý các danh mục thu/chi dùng để phân loại giao dịch.
+                  </p>
+                </div>
+                <div class="d-flex flex-column flex-md-row flex-wrap gap-2 category-toolbar">
+                  <input
+                    type="text"
+                    class="form-control table-search-input"
+                    id="searchCategoryInput"
+                    placeholder="Tìm tên danh mục hoặc keyword AI..."
+                  />
+                  <select
+                    class="form-select table-filter-select"
+                    id="filterCategoryType"
+                  >
+                    <option value="ALL">Tất cả</option>
+                    <option value="THU">Thu</option>
+                    <option value="CHI">Chi</option>
+                  </select>
+                  <select
+                    class="form-select table-filter-select"
+                    id="filterCategoryStatus"
+                  >
+                    <option value="ALL">Tất cả</option>
+                    <option value="ACTIVE">Đang hoạt động</option>
+                    <option value="INACTIVE">Ngừng hoạt động</option>
+                  </select>
+                  <button
+                    class="btn btn-primary-gradient"
+                    id="btnOpenCategoryModal"
+                  >
+                    <i class="bi bi-plus-lg me-1"></i>Thêm danh mục
+                  </button>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle custom-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tên danh mục</th>
+                      <th>Loại</th>
+                      <th>Keyword AI</th>
+                      <th>Trạng thái</th>
+                      <th>Số giao dịch đang dùng</th>
+                      <th class="text-end">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="categoriesTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center text-muted py-4">
+                        Không có dữ liệu danh mục để hiển thị.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <form id="categoryForm">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="categoryModalTitle">Thêm danh mục</h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Đóng"
+                    ></button>
+                  </div>
+                  <div class="modal-body">
+                    <input type="hidden" id="categoryIdInput" />
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" for="categoryNameInput">Tên danh mục</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="categoryNameInput"
+                        placeholder="Ví dụ: Ăn uống"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" for="categoryTypeInput">Loại danh mục</label>
+                      <select class="form-select" id="categoryTypeInput" required>
+                        <option value="THU">Thu</option>
+                        <option value="CHI">Chi</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" for="categoryKeywordAiInput">Keyword AI</label>
+                      <textarea
+                        class="form-control"
+                        id="categoryKeywordAiInput"
+                        rows="3"
+                        placeholder="ăn sáng, ăn trưa, cơm, phở, cafe, trà sữa"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary-gradient" id="btnSaveCategory">
+                      <i class="bi bi-check2 me-1"></i>Lưu
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. AI MODEL PANEL -->
+          <section class="tab-pane d-none" id="tab-ai">
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="chart-card card-glow h-100">
+                  <h4 class="chart-title mb-3">Thông số AI Model hiện tại</h4>
+                  <div class="ai-metrics-container my-4 text-center">
+                    <div class="radial-progress-wrapper mx-auto">
+                      <svg viewBox="0 0 100 100" class="radial-progress">
+                        <circle
+                          class="radial-progress-bg"
+                          cx="50"
+                          cy="50"
+                          r="40"
+                        ></circle>
+                        <circle
+                          class="radial-progress-bar"
+                          id="aiAccuracyCircle"
+                          stroke-dashoffset="22.7"
+                          cx="50"
+                          cy="50"
+                          r="40"
+                        ></circle>
+                      </svg>
+                      <div class="radial-progress-text">
+                        <span class="value" id="aiAccuracyText">94.5%</span>
+                        <span class="label">Độ chính xác</span>
+                      </div>
+                    </div>
+                  </div>
+                  <ul class="list-group list-group-flush custom-list-group">
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span>Model hoạt động:</span>
+                      <strong class="text-primary" id="aiActiveModel"
+                        >Logistic Regression v2.1</strong
+                      >
+                    </li>
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span>Tổng tập dữ liệu huấn luyện:</span>
+                      <strong id="aiTotalTrained">14,200 mẫu</strong>
+                    </li>
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span>Ngày huấn luyện cuối:</span>
+                      <strong id="aiLastTrained">01/06/2026</strong>
+                    </li>
+                  </ul>
+
+                  <div class="mt-4">
+                    <button
+                      class="btn btn-primary-gradient w-100 py-3"
+                      id="btnRetrainAI"
+                    >
+                      <i class="bi bi-arrow-repeat me-2"></i>Huấn luyện lại AI
+                      Model
+                    </button>
+
+                    <!-- Retrain Progress bar (hidden initially) -->
+                    <div
+                      class="retrain-progress-box mt-3 d-none"
+                      id="retrainProgressBox"
+                    >
+                      <div class="d-flex justify-content-between mb-1">
+                        <span class="small" id="retrainStatusText"
+                          >Đang tải tập dữ liệu...</span
+                        >
+                        <span class="small fw-bold" id="retrainPercentText"
+                          >0%</span
+                        >
+                      </div>
+                      <div class="progress progress-custom">
+                        <div
+                          class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                          id="retrainProgressBar"
+                          role="progressbar"
+                          style="width: 0%"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="chart-card card-glow h-100">
+                  <h4 class="chart-title mb-3">
+                    Mô phỏng Kiểm thử AI Phân loại
+                  </h4>
+                  <p class="text-muted small">
+                    Nhập một nội dung giao dịch bất kỳ để kiểm tra mức độ nhận
+                    diện danh mục của mô hình AI hiện tại.
+                  </p>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold"
+                      >Nội dung giao dịch mẫu</label
+                    >
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        class="form-control py-2"
+                        id="aiTestInput"
+                        placeholder="Ví dụ: Ăn phở bò sáng 45k hoặc đi grap 25000"
+                      />
+                      <button class="btn btn-secondary-glow" id="btnTestAI">
+                        Phân loại ngay
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="ai-test-result-box d-none" id="aiTestResultBox">
+                    <h5 class="mb-3 border-bottom pb-2">
+                      Kết quả phân tích AI:
+                    </h5>
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <div class="result-item-card">
+                          <small class="text-muted d-block"
+                            >Danh mục dự đoán</small
+                          >
+                          <strong
+                            id="aiResultCategory"
+                            class="text-success fs-5"
+                            >-</strong
+                          >
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="result-item-card">
+                          <small class="text-muted d-block">Độ tin cậy</small>
+                          <strong
+                            id="aiResultConfidence"
+                            class="text-primary fs-5"
+                            >0%</strong
+                          >
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="result-item-card">
+                          <small class="text-muted d-block"
+                            >Loại giao dịch</small
+                          >
+                          <span class="badge bg-danger" id="aiResultType"
+                            >CHI</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6. CHATBOT LOGS PANEL -->
+          <section class="tab-pane d-none" id="tab-chatbot">
+            <div class="chart-card card-glow">
+              <div
+                class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4"
+              >
+                <div>
+                  <h4 class="chart-title mb-1">Chatbot Logs</h4>
+                  <p class="text-muted mb-0">
+                    Theo dõi lịch sử câu hỏi/trả lời, số lượt dùng chatbot và
+                    lỗi chatbot nếu có.
+                  </p>
+                </div>
+                <input
+                  type="text"
+                  class="form-control table-search-input"
+                  id="searchChatbotInput"
+                  placeholder="Tìm email hoặc nội dung..."
+                />
+                <select
+                  class="form-select table-filter-select"
+                  id="filterChatbotSender"
+                >
+                  <option value="ALL">Tất cả người gửi</option>
+                  <option value="USER">USER</option>
+                  <option value="BOT">BOT</option>
+                </select>
+                <input
+                  type="date"
+                  class="form-control table-filter-select"
+                  id="chatbotFromDate"
+                />
+                <input
+                  type="date"
+                  class="form-control table-filter-select"
+                  id="chatbotToDate"
+                />
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle custom-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Họ tên</th>
+                      <th>Người gửi</th>
+                      <th>Nội dung</th>
+                      <th>Thời gian</th>
+                      <th class="text-end">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="chatbotLogsTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center text-muted py-4">
+                        Không có dữ liệu chatbot để hiển thị.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. REPORTS PANEL -->
+          <section class="tab-pane d-none" id="tab-reports">
+            <div class="chart-card card-glow">
+              <div class="mb-4">
+                <h4 class="chart-title mb-1">Báo cáo & Xuất dữ liệu</h4>
+                <p class="text-muted mb-0">
+                  Trung tâm tạo, lọc và xuất báo cáo Excel/PDF cho người dùng,
+                  giao dịch, Premium, thanh toán, AI và chatbot.
+                </p>
+              </div>
+
+              <!-- Report types -->
+              <div class="mb-4">
+                <div
+                  class="d-flex align-items-center justify-content-between mb-3"
+                >
+                  <div>
+                    <h5 class="fw-bold mb-1">Loại báo cáo</h5>
+                    <p class="text-muted mb-0 small">
+                      Chọn loại dữ liệu cần xuất báo cáo.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-md-6 col-xl-4">
+                    <div
+                      class="result-item-card report-type-card h-100"
+                      data-report-type="users"
+                    >
+                      <div class="d-flex align-items-center gap-3">
+                        <div
+                          class="stat-icon-square bg-blue-light text-primary"
+                        >
+                          <i class="bi bi-people-fill"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                          <strong class="d-block">Báo cáo người dùng</strong>
+                          <small class="text-muted"
+                            >User, vai trò, trạng thái, ngày tạo</small
+                          >
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success report-select-btn"
+                        >
+                          Chọn
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 col-xl-4">
+                    <div
+                      class="result-item-card report-type-card h-100"
+                      data-report-type="transactions"
+                    >
+                      <div class="d-flex align-items-center gap-3">
+                        <div
+                          class="stat-icon-square bg-emerald-light text-success"
+                        >
+                          <i class="bi bi-credit-card-fill"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                          <strong class="d-block">Báo cáo giao dịch</strong>
+                          <small class="text-muted"
+                            >Thu chi, danh mục, ngày giao dịch</small
+                          >
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success report-select-btn"
+                        >
+                          Chọn
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 col-xl-4">
+                    <div
+                      class="result-item-card report-type-card h-100"
+                      data-report-type="premium"
+                    >
+                      <div class="d-flex align-items-center gap-3">
+                        <div
+                          class="stat-icon-square bg-yellow-light text-warning"
+                        >
+                          <i class="bi bi-gem"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                          <strong class="d-block">Báo cáo Premium</strong>
+                          <small class="text-muted"
+                            >Gói, hạn sử dụng, trạng thái Premium</small
+                          >
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success report-select-btn"
+                        >
+                          Chọn
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 col-xl-4">
+                    <div
+                      class="result-item-card report-type-card h-100"
+                      data-report-type="payments"
+                    >
+                      <div class="d-flex align-items-center gap-3">
+                        <div
+                          class="stat-icon-square bg-blue-light text-primary"
+                        >
+                          <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                          <strong class="d-block">Báo cáo thanh toán</strong>
+                          <small class="text-muted"
+                            >Số tiền, phương thức, trạng thái</small
+                          >
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success report-select-btn"
+                        >
+                          Chọn
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 col-xl-4">
+                    <div
+                      class="result-item-card report-type-card h-100"
+                      data-report-type="ai"
+                    >
+                      <div class="d-flex align-items-center gap-3">
+                        <div
+                          class="stat-icon-square bg-purple-light text-purple"
+                        >
+                          <i class="bi bi-cpu-fill"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                          <strong class="d-block">Báo cáo AI Model</strong>
+                          <small class="text-muted"
+                            >Lượt phân loại, confidence, cảnh báo thấp</small
+                          >
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success report-select-btn"
+                        >
+                          Chọn
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 col-xl-4">
+                    <div
+                      class="result-item-card report-type-card h-100"
+                      data-report-type="chatbot"
+                    >
+                      <div class="d-flex align-items-center gap-3">
+                        <div
+                          class="stat-icon-square bg-emerald-light text-success"
+                        >
+                          <i class="bi bi-chat-dots-fill"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                          <strong class="d-block">Báo cáo Chatbot Logs</strong>
+                          <small class="text-muted"
+                            >Lượt chat, câu hỏi, phản hồi chatbot</small
+                          >
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success report-select-btn"
+                        >
+                          Chọn
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Export form -->
+              <div class="result-item-card">
+                <div class="mb-3">
+                  <h5 class="fw-bold mb-1">Thiết lập xuất báo cáo</h5>
+                  <p class="text-muted mb-0 small">
+                    Chọn loại báo cáo, khoảng thời gian và định dạng file cần
+                    xuất.
+                  </p>
+                </div>
+
+                <form id="reportExportForm">
+                  <div class="row g-3">
+                    <div class="col-md-6 col-xl-3">
+                      <label class="form-label fw-semibold">Loại báo cáo</label>
+                      <select
+                        class="form-select"
+                        id="reportType"
+                        name="report_type"
+                      >
+                        <option value="users">Người dùng</option>
+                        <option value="transactions">Giao dịch</option>
+                        <option value="premium">Gói Premium</option>
+                        <option value="payments">Thanh toán</option>
+                        <option value="ai">AI Model</option>
+                        <option value="chatbot">Chatbot Logs</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-6 col-xl-3">
+                      <label class="form-label fw-semibold">Từ ngày</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="reportFromDate"
+                        name="from_date"
+                      />
+                    </div>
+
+                    <div class="col-md-6 col-xl-3">
+                      <label class="form-label fw-semibold">Đến ngày</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="reportToDate"
+                        name="to_date"
+                      />
+                    </div>
+
+                    <div class="col-md-6 col-xl-3">
+                      <label class="form-label fw-semibold">Định dạng</label>
+                      <select
+                        class="form-select"
+                        id="reportFormat"
+                        name="format"
+                      >
+                        <option value="excel">Excel</option>
+                        <option value="pdf">PDF</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="d-flex flex-wrap gap-2 mt-4">
+                    <button
+                      type="submit"
+                      class="btn btn-primary-gradient px-4 py-2"
+                    >
+                      <i class="bi bi-file-earmark-arrow-down me-2"></i>Xuất báo
+                      cáo
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+          <!-- 8. SETTINGS PANEL -->
+          <section class="tab-pane d-none" id="tab-settings">
+            <div class="chart-card card-glow max-width-600">
+              <h4 class="chart-title mb-1">Thông tin cá nhân</h4>
+              <p class="text-muted mb-4">
+                Quản lý thông tin tài khoản admin và thay đổi mật khẩu đăng
+                nhập.
+              </p>
+
+              <!-- KHỐI QUẢN LÝ AVATAR -->
+              <div class="avatar-upload-container text-center mb-4">
+                <div
+                  class="avatar-preview-wrapper mx-auto position-relative"
+                  style="width: 120px; height: 120px"
+                >
+                  <div id="settingsAvatarPreview" class="avatar-preview-circle">
+                    A
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-change-avatar-badge"
+                    id="btnTriggerAvatarUpload"
+                    title="Thay đổi ảnh đại diện"
+                  >
+                    <i class="bi bi-camera-fill"></i>
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  id="adminAvatarFileInput"
+                  accept="image/*"
+                  class="d-none"
+                />
+                <small class="text-muted d-block mt-2" style="font-size: 11px"
+                  >Định dạng hỗ trợ: JPG, PNG, GIF (Tối đa 2MB)</small
+                >
+              </div>
+
+              <!-- FORM THÔNG TIN CÁ NHÂN -->
+              <form id="adminProfileForm" class="mb-5">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Họ và tên</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="adminFullNameInput"
+                    name="ho_ten"
+                    placeholder="Nhập họ và tên"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="adminEmailInput"
+                    name="email"
+                    placeholder="Nhập email"
+                    disabled
+                    style="background-color: rgb(218, 217, 217) !important"
+                  />
+                  <div class="form-text">
+                    Email tài khoản không thể thay đổi.
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    class="form-control"
+                    id="adminPhoneInput"
+                    name="so_dien_thoai"
+                    placeholder="Nhập số điện thoại"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Ngày sinh</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="adminBirthdayInput"
+                    name="ngay_sinh"
+                  />
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold">Vai trò</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="adminRoleInput"
+                    disabled
+                    style="background-color: rgb(218, 217, 217) !important"
+                  />
+                  <div class="form-text">
+                    Vai trò tài khoản không thể tự thay đổi.
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  class="btn btn-primary-gradient px-4 py-2"
+                >
+                  <i class="bi bi-person-check me-2"></i>Lưu thông tin
+                </button>
+              </form>
+
+              <hr class="my-4" />
+
+              <!-- FORM ĐỔI MẬT KHẨU -->
+              <h4 class="chart-title mb-1">Đổi mật khẩu</h4>
+              <form id="changePasswordForm">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold"
+                    >Mật khẩu hiện tại</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="currentPassword"
+                    name="current_password"
+                    placeholder="Nhập mật khẩu hiện tại"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Mật khẩu mới</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="newPassword"
+                    name="new_password"
+                    placeholder="Nhập mật khẩu mới"
+                  />
+                  <div class="form-text">Mật khẩu nên có ít nhất 6 ký tự.</div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold"
+                    >Xác nhận mật khẩu mới</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="confirmPassword"
+                    name="confirm_password"
+                    placeholder="Nhập lại mật khẩu mới"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  class="btn btn-primary-gradient px-4 py-2"
+                >
+                  <i class="bi bi-shield-lock me-2"></i>Cập nhật mật khẩu
+                </button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <div class="modal fade" id="commonDetailModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="commonDetailModalTitle">Chi tiết</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Đóng"
+            ></button>
+          </div>
+          <div class="modal-body" id="commonDetailModalBody"></div>
+          <div class="modal-footer" id="commonDetailModalFooter">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- modal popup notication -->
+    <div id="toastContainer"></div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/admin/adminCommon.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminSettings.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminOverview.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminUsers.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminTransactions.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminAi.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminReports.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminCategories.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminChatbot.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminPremium.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/adminPayments.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/admin/homeAdmin.js') }}"></script>
+  </body>
+</html>

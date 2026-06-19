@@ -1,0 +1,205 @@
+{% if not partial %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Expense Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f7f6; }
+        .ai-card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .suggestion-chip { cursor: pointer; transition: 0.2s; }
+        .suggestion-chip:hover { transform: translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #loadingSpinner { display: none; }
+        #resultContainer { display: none; }
+    </style>
+</head>
+<body>
+{% endif %}
+
+<div class="container {% if not partial %}mt-5{% endif %}">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary"><i class="bi bi-robot"></i> Trợ lý Nhập liệu AI</h2>
+                <p class="text-muted">Nhập chi tiêu bằng ngôn ngữ tự nhiên</p>
+            </div>
+
+            <div class="card ai-card p-4 mb-4">
+                <form id="expenseForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả giao dịch</label>
+                        <input type="text" class="form-control form-control-lg" id="description" 
+                               placeholder="VD: ăn cơm tấm sườn bì chả 35k" required autocomplete="off">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Loại tài khoản mô phỏng</label>
+                        <select class="form-select" id="userType">
+                            <option value="PREMIUM" selected>⭐ PREMIUM (Machine Learning)</option>
+                            <option value="USER">👤 USER Cơ bản (Rule-based)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-magic"></i> Phân tích giao dịch
+                    </button>
+                </form>
+            </div>
+
+            <div id="loadingSpinner" class="text-center my-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang xử lý...</span>
+                </div>
+                <p class="mt-2 text-muted">AI đang phân tích...</p>
+            </div>
+
+            <div id="resultContainer">
+                <div class="card ai-card p-4">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">Kết quả Phân loại</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Số tiền trích xuất</small>
+                            <h4 class="fw-bold text-danger" id="resAmount">0 đ</h4>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Danh mục dự đoán</small>
+                            <h4 class="fw-bold text-success" id="resCategory">-</h4>
+                        </div>
+                    </div>
+
+                    <div class="card p-3 shadow-sm w-100 mb-3 bg-light border-0">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="text-muted mb-0">Độ tự tin của AI</h6>
+                            <small id="methodText" class="badge bg-secondary"></small>
+                        </div>
+                        
+                        <div class="progress" style="height: 20px;">
+                            <div id="aiConfidenceBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%;">0%</div>
+                        </div>
+                        
+                        <small id="aiConfidenceText" class="mt-2 text-center d-block fw-bold"></small>
+                    </div>
+                    <div id="reviewSection" class="alert alert-warning mt-2" style="display: none;">
+                        <i class="bi bi-exclamation-triangle-fill"></i> <strong>AI không chắc chắn lắm!</strong><br>
+                        Có phải bạn muốn chọn một trong các danh mục dưới đây không?
+                        <div id="suggestionTags" class="mt-2"></div>
+                    </div>
+
+                    <button class="btn btn-success w-100 mt-2" onclick="saveTransaction()">
+                        <i class="bi bi-check-circle"></i> Xác nhận & Lưu
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('expenseForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); // Chặn tải lại trang
+        
+        // 1. Lấy dữ liệu từ form
+        const description = document.getElementById('description').value;
+        const userType = document.getElementById('userType').value;
+        
+        // 2. Hiển thị Loading, Ẩn Kết quả
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('resultContainer').style.display = 'none';
+
+        try {
+            // 3. Gọi API Backend (Đảm bảo Flask server đang chạy ở port 5000)
+            const response = await fetch('http://127.0.0.1:5000/api/transactions/classify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    description: description,
+                    user_type: userType
+                })
+            });
+
+            const result = await response.json();
+
+            // 4. Xử lý UI nếu API trả về success
+            if (result.status === 'success') {
+                const data = result.data;
+                
+                // Format số tiền
+                document.getElementById('resAmount').innerText = data.amount.toLocaleString('vi-VN') + ' đ';
+                document.getElementById('resCategory').innerText = data.category;
+                
+                // Cập nhật thanh tiến trình (Confidence)
+                const confBar = document.getElementById('aiConfidenceBar');
+                confBar.style.width = data.confidence_score + '%';
+                
+                // Đổi màu thanh tùy theo độ tự tin
+                if (data.confidence_score >= 80) confBar.className = 'progress-bar bg-success';
+                else if (data.confidence_score >= 50) confBar.className = 'progress-bar bg-warning';
+                else confBar.className = 'progress-bar bg-danger';
+                
+                document.getElementById('aiConfidenceText').innerText = data.confidence_score + '%';
+                document.getElementById('methodText').innerText = data.classification_method;
+
+                // XỬ LÝ KỊCH BẢN "NEEDS REVIEW"
+                const reviewSection = document.getElementById('reviewSection');
+                const suggestionTags = document.getElementById('suggestionTags');
+                suggestionTags.innerHTML = ''; // Xóa gợi ý cũ
+
+                if (data.needs_user_review && data.top_predictions) {
+                    reviewSection.style.display = 'block';
+                    
+                    // Lặp qua top dự đoán và tạo các nút gợi ý
+                    for (const [cat, prob] of Object.entries(data.top_predictions)) {
+                        const btn = document.createElement('span');
+                        btn.className = 'badge bg-outline-primary border text-dark p-2 me-2 suggestion-chip';
+                        btn.innerHTML = `${cat} <small class="text-muted">(${prob}%)</small>`;
+                        
+                        // Khi click vào gợi ý, sửa lại danh mục dự đoán
+                        btn.onclick = function() {
+                            document.getElementById('resCategory').innerText = cat;
+                            document.getElementById('aiConfidenceBar').style.width = '100%';
+                            document.getElementById('aiConfidenceBar').className = 'progress-bar bg-success';
+                            document.getElementById('aiConfidenceText').innerText = '100% (User Verified)';
+                            reviewSection.style.display = 'none'; // Ẩn cảnh báo
+                        };
+                        suggestionTags.appendChild(btn);
+                    }
+                } else {
+                    reviewSection.style.display = 'none';
+                }
+
+                // Hiển thị kết quả, tắt Loading
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('resultContainer').style.display = 'block';
+            } else {
+                alert('Lỗi từ API: ' + result.message);
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Không thể kết nối đến máy chủ Backend. Đảm bảo Flask đang chạy!');
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+    });
+
+    function saveTransaction() {
+        const cat = document.getElementById('resCategory').innerText;
+        const amt = document.getElementById('resAmount').innerText;
+        alert(`Đã lưu giao dịch: ${amt} vào danh mục [${cat}] thành công! (Giả lập đẩy vào Database)`);
+        // Reset form
+        document.getElementById('expenseForm').reset();
+        document.getElementById('resultContainer').style.display = 'none';
+    }
+</script>
+
+{% if not partial %}
+</body>
+</html>
+{% endif %}
