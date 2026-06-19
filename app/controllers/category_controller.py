@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from app.services import category_service
+from app.services.user import category_service
 
 
 def get_categories():
