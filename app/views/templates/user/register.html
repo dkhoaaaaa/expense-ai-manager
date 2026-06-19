@@ -19,7 +19,7 @@
                 <h3 class="fw-bold">Tạo tài khoản mới</h3>
                 <p class="text-muted">Bắt đầu quản lý tài chính hiệu quả với AI</p>
             </div>
-            <form action="/register" method="POST">
+            <form action="{{ url_for('auth.register') }}" method="POST">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Họ và tên</label>
                     <input type="text" name="name" class="form-control form-control-lg" placeholder="Nhập họ và tên" required>
@@ -40,7 +40,7 @@
             </form>
             <div class="text-center">
                 <span class="text-muted">Đã có tài khoản?</span> 
-                <a href="/login" class="text-success fw-bold text-decoration-none">Đăng nhập</a>
+                <a href="{{ url_for('auth.login') }}" class="text-success fw-bold text-decoration-none">Đăng nhập</a>
             </div>
         </div>
     </div>

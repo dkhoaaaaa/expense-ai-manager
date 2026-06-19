@@ -1,0 +1,179 @@
+:root {
+  --bg-dark: #1e293b;
+  --card-bg: #ffffff;
+  --text-dark: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #334155;
+  --primary-hover: #1e293b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Be Vietnam Pro", sans-serif;
+  background: var(--bg-dark);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 40px 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.form-control {
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 0 16px;
+}
+
+.form-control:focus {
+  box-shadow: none;
+  border-color: var(--primary);
+}
+
+.btn-login {
+  height: 48px;
+  border-radius: 12px;
+  background: var(--primary);
+  border: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-login:hover {
+  background: var(--primary-hover);
+}
+
+.toast-container-custom {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast-notify {
+  min-width: 320px;
+  max-width: 420px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast-show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-hide {
+  transform: translateX(120%);
+  opacity: 0;
+}
+
+.toast-icon-box {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.toast-success .toast-icon-box {
+  color: #16a34a;
+}
+
+.toast-error .toast-icon-box {
+  color: #dc2626;
+}
+
+.toast-body-content {
+  flex: 1;
+}
+
+.toast-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.toast-message {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.toast-close-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toast-progress-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  width: 100%;
+  animation-name: toastProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.toast-success .toast-progress-bar {
+  background: #16a34a;
+}
+
+.toast-error .toast-progress-bar {
+  background: #dc2626;
+}
+
+@keyframes toastProgress {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
