@@ -7,7 +7,8 @@ from app.controllers.transaction_controller import (
     filter_transactions,
     classify_transaction,
     dashboard_summary,
-    top_expenses
+    top_expenses,
+    update_transaction
 )
 
 transaction_bp = Blueprint('transaction_bp', __name__)
@@ -17,6 +18,11 @@ transaction_bp = Blueprint('transaction_bp', __name__)
 transaction_bp.route("/api/transactions", methods=["POST"])(create_transaction)
 transaction_bp.route("/api/transactions", methods=["GET"])(get_transactions)
 transaction_bp.route("/api/transactions/<int:id>", methods=["DELETE"])(delete_transaction)
+
+transaction_bp.route(
+    "/api/transactions/<int:transaction_id>",
+    methods=["POST", "PUT"]
+)(update_transaction)
 
 # SEARCH + FILTER
 transaction_bp.route("/api/transactions/search", methods=["GET"])(search_transactions)
