@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  let currentPage = 1;
+  const ITEMS_PER_PAGE = 10;
   // --- 1. BIẾN TOÀN CỤC ---
   let globalCategories = [];
   let userRole = "USER";
@@ -240,6 +242,8 @@ document.addEventListener("DOMContentLoaded", () => {
             </tbody>
           </table>
         </div>
+        
+        <div id="pagination" class="d-flex justify-content-center mt-3"></div>
       </div>
     `,
     budgets: `
@@ -846,7 +850,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- 5. TAB 2: QUẢN LÝ GIAO DỊCH (TRANSACTIONS CRUD) ---
-  let transactionsData = [];
 
   async function loadTransactions() {
     const tableBody = document.getElementById("transaction-table-body");
@@ -877,13 +880,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTransactionsTable(list) {
     const tableBody = document.getElementById("transaction-table-body");
     if (!tableBody) return;
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+
+    const paginatedList = list.slice(start, end);
 
     if (list.length === 0) {
       tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-secondary">Không tìm thấy giao dịch nào</td></tr>';
       return;
     }
 
-    tableBody.innerHTML = list.map(t => {
+    tableBody.innerHTML = paginatedList.map(t => {
       const isThu = t.type.toLowerCase() === "income" || t.type.toLowerCase() === "thu";
       const badgeClass = isThu ? "badge-income" : "badge-expense";
       const badgeText = isThu ? "Thu nhập" : "Chi tiêu";
@@ -919,7 +926,38 @@ document.addEventListener("DOMContentLoaded", () => {
         </tr>
       `;
     }).join("");
+    renderPagination(list.length);
   }
+
+  function renderPagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+    const container = document.getElementById("pagination");
+    if (!container) return;
+
+    let html = "";
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `
+        <button
+          class="btn btn-sm ${
+            i === currentPage
+              ? "btn-success"
+              : "btn-outline-success"
+          } me-1"
+          onclick="changePage(${i})">
+          ${i}
+        </button>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+window.changePage = function(page) {
+  currentPage = page;
+  renderTransactionsTable(transactionsData);
+};
 
   // Chức năng lọc giao dịch
   async function handleFilterTransactions() {
@@ -983,6 +1021,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const amountEl = document.getElementById("add-tx-amount");
       const categoryIdEl = document.getElementById("add-tx-category");
       const descriptionEl = document.getElementById("add-tx-desc");
+      const dateEl = document.getElementById("add-tx-date");
 
       const type = typeEl ? typeEl.value : "CHI";
       const amount = amountEl ? parseFloat(amountEl.value) : 0;
@@ -997,7 +1036,8 @@ document.addEventListener("DOMContentLoaded", () => {
             amount: amount,
             type: type,
             category_id: categoryId,
-            description: description
+            description: description,
+            ngay_giao_dich: dateEl.value
           })
         });
 
