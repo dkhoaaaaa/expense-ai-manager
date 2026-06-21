@@ -10,5 +10,8 @@
         "**/__pycache__": true,
         "**/*.pyc": true,
         "**/*.pyo": true
-    }
+    },
+    "geminicodeassist.inlineSuggestions.nextEditPredictions": true,
+    "geminicodeassist.codeGenerationPaneViewEnabled": true,
+    "geminicodeassist.project": "dotted-gearing-1v2pc"
 }
