@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let incomeChartInstance = null;
   let expenseChartInstance = null;
   let timeSeriesChartInstance = null;
-
+  let budgetPieChartInstance = null;
   // Lấy các tham số cấu hình
   const urlParams = new URLSearchParams(window.location.search);
   const queryUserId = urlParams.get("user_id") || "2";
@@ -243,103 +243,118 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `,
     budgets: `
-      <div class="budget-tab-grid">
-        <div>
-          <article class="app-card mb-4">
-            <div class="card-heading compact">
+      <div class="budget-tab-wrapper">
+        <!-- 1. Summary Cards: Tổng NS | Đã dùng | Còn lại -->
+        <section class="budget-summary-cards" aria-label="Thống kê tổng quan ngân sách">
+          <article class="budget-summary-card">
+            <div class="budget-summary-icon">
+              <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="budget-summary-info">
+              <span class="budget-summary-label">Tổng ngân sách</span>
+              <h3 class="budget-summary-value" id="budget-total-amount">0đ</h3>
+            </div>
+            <div class="budget-summary-decoration"></div>
+          </article>
+          <article class="budget-summary-card spent">
+            <div class="budget-summary-icon spent">
+              <i class="bi bi-cart-dash"></i>
+            </div>
+            <div class="budget-summary-info">
+              <span class="budget-summary-label">Đã sử dụng</span>
+              <h3 class="budget-summary-value" id="budget-total-spent">0đ</h3>
+            </div>
+            <div class="budget-summary-decoration spent"></div>
+          </article>
+          <article class="budget-summary-card remaining">
+            <div class="budget-summary-icon remaining">
+              <i class="bi bi-piggy-bank"></i>
+            </div>
+            <div class="budget-summary-info">
+              <span class="budget-summary-label">Còn lại</span>
+              <h3 class="budget-summary-value" id="budget-total-remaining">0đ</h3>
+            </div>
+            <div class="budget-summary-decoration remaining"></div>
+          </article>
+        </section>
+
+        <!-- 2. Form thiết lập ngân sách -->
+        <section class="budget-form-section">
+          <article class="app-card budget-form-card">
+            <div class="budget-form-header">
+              <div class="budget-form-icon-wrapper">
+                <i class="bi bi-sliders2"></i>
+              </div>
               <div>
-                <h2>Đặt hạn mức ngân sách</h2>
-                <p>Thiết lập hạn mức chi tiêu hàng tháng</p>
+                <h4 class="fw-bold mb-1">Thiết lập ngân sách</h4>
+                <p class="text-muted small mb-0">Đặt hạn mức chi tiêu hàng tháng cho từng danh mục</p>
               </div>
             </div>
-            <form id="setBudgetForm">
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Danh mục</label>
-                <select class="form-select form-custom-input" id="budget-category-select" required>
-                  <!-- Điền tự động -->
+            <form id="setBudgetForm" class="budget-form-grid">
+              <div class="budget-form-field">
+                <label class="form-label fw-semibold"><i class="bi bi-tag me-1 text-muted"></i>Danh mục</label>
+                <select class="form-select form-custom-input" id="budget-category-select" required></select>
+              </div>
+              <div class="budget-form-field">
+                <label class="form-label fw-semibold"><i class="bi bi-calendar3 me-1 text-muted"></i>Tháng</label>
+                <select class="form-select form-custom-input" id="budget-month" required>
+                  <option value="1">Tháng 1</option><option value="2">Tháng 2</option>
+                  <option value="3">Tháng 3</option><option value="4">Tháng 4</option>
+                  <option value="5">Tháng 5</option><option value="6" selected>Tháng 6</option>
+                  <option value="7">Tháng 7</option><option value="8">Tháng 8</option>
+                  <option value="9">Tháng 9</option><option value="10">Tháng 10</option>
+                  <option value="11">Tháng 11</option><option value="12">Tháng 12</option>
                 </select>
               </div>
-              <div class="row g-2 mb-3">
-                <div class="col-6">
-                  <label class="form-label fw-semibold">Tháng</label>
-                  <select class="form-select form-custom-input" id="budget-month" required>
-                    <option value="1">Tháng 1</option>
-                    <option value="2">Tháng 2</option>
-                    <option value="3">Tháng 3</option>
-                    <option value="4">Tháng 4</option>
-                    <option value="5">Tháng 5</option>
-                    <option value="6" selected>Tháng 6</option>
-                    <option value="7">Tháng 7</option>
-                    <option value="8">Tháng 8</option>
-                    <option value="9">Tháng 9</option>
-                    <option value="10">Tháng 10</option>
-                    <option value="11">Tháng 11</option>
-                    <option value="12">Tháng 12</option>
-                  </select>
-                </div>
-                <div class="col-6">
-                  <label class="form-label fw-semibold">Năm</label>
-                  <select class="form-select form-custom-input" id="budget-year" required>
-                    <option value="2025">2025</option>
-                    <option value="2026" selected>2026</option>
-                  </select>
-                </div>
+              <div class="budget-form-field">
+                <label class="form-label fw-semibold"><i class="bi bi-calendar-range me-1 text-muted"></i>Năm</label>
+                <select class="form-select form-custom-input" id="budget-year" required>
+                  <option value="2025">2025</option><option value="2026" selected>2026</option>
+                </select>
               </div>
-              <div class="mb-4">
-                <label for="budget-amount" class="form-label fw-semibold">Số tiền hạn mức (đ)</label>
-                <input type="number" class="form-control form-custom-input" id="budget-amount" placeholder="VD: 5000000" required min="1">
+              <div class="budget-form-field">
+                <label for="budget-amount" class="form-label fw-semibold"><i class="bi bi-currency-exchange me-1 text-muted"></i>Hạn mức (đ)</label>
+                <input type="number" class="form-control form-custom-input" id="budget-amount" placeholder="VD: 5,000,000" required min="1">
               </div>
-              <button type="submit" class="btn btn-main w-100">
-                <i class="bi bi-check-circle"></i> Đặt hạn mức
-              </button>
+              <div class="budget-form-submit">
+                <button type="submit" class="btn btn-main w-100">
+                  <i class="bi bi-check2-circle"></i> Lưu hạn mức
+                </button>
+              </div>
             </form>
           </article>
+        </section>
 
+        <!-- 3. Danh sách ngân sách + progress bar -->
+        <section class="budget-list-section">
           <article class="app-card">
-            <div class="card-heading compact">
-              <div>
-                <h2>Tạo danh mục mới</h2>
-                <p>Thêm danh mục chi tiêu/thu nhập tùy biến</p>
-              </div>
-            </div>
-            <form id="createCategoryForm">
-              <div class="mb-3">
-                <label for="cat-name" class="form-label fw-semibold">Tên danh mục</label>
-                <input type="text" class="form-control form-custom-input" id="cat-name" placeholder="VD: Mua sắm sách vở" required autocomplete="off">
-              </div>
-              <div class="mb-4">
-                <label class="form-label fw-semibold d-block">Loại danh mục</label>
-                <div class="d-flex gap-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="cat-type" id="cat-type-chi" value="CHI" checked>
-                    <label class="form-check-label fw-bold text-danger" for="cat-type-chi">Chi tiêu</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="cat-type" id="cat-type-thu" value="THU">
-                    <label class="form-check-label fw-bold text-success" for="cat-type-thu">Thu nhập</label>
-                  </div>
-                </div>
-              </div>
-              <button type="submit" class="btn btn-ghost w-100">
-                <i class="bi bi-plus-lg"></i> Thêm danh mục
-              </button>
-            </form>
-          </article>
-        </div>
-
-        <div>
-          <article class="app-card h-100">
             <div class="card-heading">
               <div>
-                <h2>Chi tiết ngân sách chi tiêu</h2>
-                <p>Theo dõi tiến độ chi tiêu theo từng danh mục trong tháng 6/2026</p>
+                <h2><i class="bi bi-list-check me-2 text-muted"></i>Chi tiết ngân sách</h2>
+                <p>Theo dõi tiến độ chi tiêu theo từng danh mục</p>
               </div>
+              <span class="soft-badge" id="budget-month-badge">Tháng 6/2026</span>
             </div>
-            <div id="budget-detailed-list">
-              <!-- Dynamic check-in list -->
+            <div id="budget-detailed-list" class="budget-items-grid">
+              <!-- Dynamic content -->
             </div>
           </article>
-        </div>
+        </section>
+
+        <!-- 4. Pie Chart -->
+        <section class="budget-chart-section">
+          <article class="app-card">
+            <div class="card-heading">
+              <div>
+                <h2><i class="bi bi-pie-chart me-2 text-muted"></i>Tỷ lệ phân bổ ngân sách</h2>
+                <p>Cơ cấu hạn mức giữa các danh mục chi tiêu</p>
+              </div>
+            </div>
+            <div class="budget-chart-container">
+              <canvas id="budgetPieChart"></canvas>
+            </div>
+          </article>
+        </section>
       </div>
     `,
     ai: `<div class="text-center py-5"><div class="spinner-border text-success"></div><p class="mt-2 text-muted">Đang tải Trợ lý AI...</p></div>`,
@@ -465,8 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Chờ animation fade-out chạy xong (150ms) rồi inject HTML và load data
     setTimeout(async () => {
       // TODO: Module Transactions sẽ được Member phụ trách Transaction phát triển
-      // TODO: Module Budgets & Categories sẽ được Member phụ trách Budget phát triển
-      if (tabId === "transactions" || tabId === "budgets") {
+      if (tabId === "transactions") {
         container.innerHTML = `
           <div class="empty-state text-center py-5">
               <i class="bi bi-folder-x display-3 text-secondary"></i>
@@ -478,6 +492,17 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         container.classList.remove("fade-out");
         container.classList.add("fade-in");
+        return;
+      }
+
+      // Tab Ngân sách: render trực tiếp từ client template
+      if (tabId === "budgets") {
+        container.innerHTML = pageTemplates.budgets;
+        container.classList.remove("fade-out");
+        container.classList.add("fade-in");
+        if (document.getElementById("budget-detailed-list")) {
+          loadBudgetsTab();
+        }
         return;
       }
 
@@ -1104,6 +1129,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
+  // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
   async function loadBudgetsTab() {
     const container = document.getElementById("budget-detailed-list");
     if (!container) return;
@@ -1117,11 +1143,6 @@ document.addEventListener("DOMContentLoaded", () => {
       budgetForm.onsubmit = handleSetBudgetSubmit;
     }
 
-    const categoryForm = document.getElementById("createCategoryForm");
-    if (categoryForm) {
-      categoryForm.onsubmit = handleCreateCategorySubmit;
-    }
-
     try {
       container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-success" role="status"></div></div>';
       
@@ -1131,53 +1152,164 @@ document.addEventListener("DOMContentLoaded", () => {
       const list = await response.json();
       
       if (list.length === 0) {
-        container.innerHTML = '<p class="text-center text-secondary py-5">Không có hạn mức ngân sách được thiết lập trong tháng này.</p>';
+        container.innerHTML = `
+          <div class="budget-empty-state">
+            <div class="budget-empty-icon"><i class="bi bi-piggy-bank"></i></div>
+            <h4>Chưa có ngân sách nào</h4>
+            <p>Hãy thiết lập hạn mức chi tiêu cho các danh mục ở form phía trên để bắt đầu quản lý ngân sách.</p>
+          </div>
+        `;
+        document.getElementById("budget-total-amount").innerText = "0đ";
+        document.getElementById("budget-total-spent").innerText = "0đ";
+        document.getElementById("budget-total-remaining").innerText = "0đ";
+        if (budgetPieChartInstance) budgetPieChartInstance.destroy();
         return;
       }
 
-      container.innerHTML = list.map(item => {
+      // Biến tích lũy tổng quan
+      let totalLimit = 0;
+      let totalSpent = 0;
+
+      // Mảng dữ liệu cho Pie Chart
+      let chartLabels = [];
+      let chartData = [];
+
+      // Render danh sách chi tiết
+      container.innerHTML = list.map((item, index) => {
         const category = globalCategories.find(c => c.id === item.category_id);
         const categoryName = category ? category.name : "Khác";
         const percent = item.limit > 0 ? (item.spent / item.limit) * 100 : 0.0;
         
-        let warningBadge = "";
-        let progressColor = "bg-success";
+        // Cộng dồn tổng số tiền
+        totalLimit += item.limit;
+        totalSpent += item.spent;
+
+        // Đẩy thông tin vào cấu trúc biểu đồ hình tròn
+        chartLabels.push(categoryName);
+        chartData.push(item.limit);
+
+        let statusClass = "safe";
+        let statusText = "An toàn";
+        let statusIcon = "bi-check-circle-fill";
+        let progressClass = "budget-progress-safe";
         
         if (item.over) {
-          warningBadge = '<span class="badge bg-danger rounded-pill"><i class="bi bi-exclamation-triangle-fill me-1"></i>Vượt ngân sách</span>';
-          progressColor = "bg-danger";
+          statusClass = "over";
+          statusText = "Vượt ngân sách";
+          statusIcon = "bi-exclamation-triangle-fill";
+          progressClass = "budget-progress-over";
         } else if (percent > 80) {
-          warningBadge = '<span class="badge bg-warning text-dark rounded-pill"><i class="bi bi-exclamation-circle-fill me-1"></i>Sắp chạm hạn mức</span>';
-          progressColor = "bg-warning";
+          statusClass = "warning";
+          statusText = "Sắp chạm hạn mức";
+          statusIcon = "bi-exclamation-circle-fill";
+          progressClass = "budget-progress-warning";
         }
 
+        const remaining = Math.max(0, item.limit - item.spent);
+
         return `
-          <div class="budget-detailed-item shadow-sm">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <h5 class="fw-bold mb-1"><i class="bi ${getCategoryIcon(categoryName)} text-success me-2"></i>${categoryName}</h5>
-                <p class="small text-muted mb-0">Hạn mức chi tiêu tháng 6/2026</p>
+          <div class="budget-detail-card" style="animation-delay: ${index * 0.06}s">
+            <div class="budget-detail-left">
+              <div class="budget-detail-cat-icon">
+                <i class="bi ${getCategoryIcon(categoryName)}"></i>
               </div>
-              <div class="text-end">
-                ${warningBadge}
-                <div class="fw-black text-dark mt-1">${formatCurrency(item.spent)} / ${formatCurrency(item.limit)}</div>
+              <div class="budget-detail-info">
+                <h5 class="budget-detail-name">${categoryName}</h5>
+                <span class="budget-detail-status ${statusClass}">
+                  <i class="bi ${statusIcon}"></i> ${statusText}
+                </span>
               </div>
             </div>
-            
-            <div class="progress" style="height: 12px !important;">
-              <div class="progress-bar ${progressColor}" role="progressbar" style="width: ${Math.min(percent, 100)}%"></div>
-            </div>
-            <div class="d-flex justify-content-between small text-muted mt-2 fw-semibold">
-              <span>Đã chi tiêu: ${percent.toFixed(1)}%</span>
-              <span>Còn lại: ${formatCurrency(Math.max(0, item.limit - item.spent))}</span>
+            <div class="budget-detail-right">
+              <div class="budget-detail-amounts">
+                <span class="budget-detail-spent">${formatCurrency(item.spent)}</span>
+                <span class="budget-detail-limit">/ ${formatCurrency(item.limit)}</span>
+              </div>
+              <div class="budget-detail-progress-wrapper">
+                <div class="budget-detail-progress">
+                  <div class="budget-detail-progress-bar ${progressClass}" style="width: ${Math.min(percent, 100)}%"></div>
+                </div>
+                <span class="budget-detail-percent">${percent.toFixed(0)}%</span>
+              </div>
+              <span class="budget-detail-remaining">Còn lại: ${formatCurrency(remaining)}</span>
             </div>
           </div>
         `;
       }).join("");
 
+      // Cập nhật 3 Thẻ Tổng quan phía trên đầu tab
+      const remainingAmount = Math.max(0, totalLimit - totalSpent);
+      document.getElementById("budget-total-amount").innerText = formatCurrency(totalLimit);
+      document.getElementById("budget-total-spent").innerText = formatCurrency(totalSpent);
+      document.getElementById("budget-total-remaining").innerText = formatCurrency(remainingAmount);
+
+      // Khởi tạo/Cập nhật Pie Chart phân bổ ngân sách hạn mức
+      renderBudgetPieChart(chartLabels, chartData);
+
     } catch (err) {
       container.innerHTML = `<p class="text-center text-danger py-5">Lỗi: ${err.message}</p>`;
     }
+  }
+
+  // Hàm vẽ biểu đồ tròn (Doughnut Chart) bằng Chart.js
+  function renderBudgetPieChart(labels, data) {
+    const ctxPie = document.getElementById("budgetPieChart");
+    if (!ctxPie) return;
+
+    if (budgetPieChartInstance) budgetPieChartInstance.destroy();
+
+    budgetPieChartInstance = new Chart(ctxPie.getContext("2d"), {
+      type: "doughnut",
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            "#3b82f6", "#10b981", "#f59e0b", "#ef4444", 
+            "#8b5cf6", "#ec4899", "#14b8a6", "#6366f1",
+            "#f97316", "#06b6d4"
+          ],
+          borderWidth: 3,
+          borderColor: "#ffffff",
+          hoverBorderWidth: 4,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "65%",
+        plugins: {
+          legend: {
+            position: "right",
+            labels: {
+              boxWidth: 14,
+              boxHeight: 14,
+              borderRadius: 4,
+              useBorderRadius: true,
+              font: { size: 13, weight: 600 },
+              padding: 14,
+              color: "#334155"
+            }
+          },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleFont: { size: 13, weight: 700 },
+            bodyFont: { size: 12 },
+            padding: 12,
+            cornerRadius: 12,
+            callbacks: {
+              label: function(context) {
+                const value = context.raw || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                return ` ${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   // Hành động Lưu Hạn Mức Ngân Sách
