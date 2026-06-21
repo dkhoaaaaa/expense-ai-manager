@@ -462,7 +462,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentTabLabel) currentTabLabel.innerText = config.badge;
         if (topbarTitle) topbarTitle.innerText = config.title;
         if (topbarSubtext) topbarSubtext.innerText = config.description;
-        topbarActions.innerHTML = config.cta;
+        if (tabId === "settings") {
+          if (userRole === "PREMIUM" || userRole === "ADMIN") {
+            topbarActions.innerHTML = `
+              <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                <i class="bi bi-star-fill me-1"></i>Tài khoản Premium
+              </span>
+            `;
+          } else {
+            topbarActions.innerHTML = `
+              <button class="btn btn-main" type="button" onclick="window.location.href='/premium'">
+                <i class="bi bi-gem"></i>
+                <span>Đăng ký Premium</span>
+              </button>
+            `;
+          }
+        } else {
+          topbarActions.innerHTML = config.cta;
+        }
         
         // Xóa class để hoàn thành hiệu ứng mượt
         topbarText.classList.remove("fade-out");
@@ -479,22 +496,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Chờ animation fade-out chạy xong (150ms) rồi inject HTML và load data
     setTimeout(async () => {
-      // TODO: Module Transactions sẽ được Member phụ trách Transaction phát triển
-      if (tabId === "transactions") {
-        container.innerHTML = `
-          <div class="empty-state text-center py-5">
-              <i class="bi bi-folder-x display-3 text-secondary"></i>
-              <h3 class="mt-3">Module đang được phát triển</h3>
-              <p class="text-muted">
-                  Chức năng này đang được thành viên khác phụ trách phát triển.
-              </p>
-          </div>
-        `;
-        container.classList.remove("fade-out");
-        container.classList.add("fade-in");
-        return;
-      }
-
       // Tab Ngân sách: render trực tiếp từ client template
       if (tabId === "budgets") {
         container.innerHTML = pageTemplates.budgets;
@@ -506,6 +507,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // TODO: Module Budgets & Categories sẽ được Member phụ trách Budget phát triển
+      if (tabId === "transactions") {
+      container.innerHTML = pageTemplates.transactions;
+      container.classList.remove("fade-out");
+      container.classList.add("fade-in");
+      loadTransactions();
+      return;
+      }
       // 1. Nếu là tab overview, render trực tiếp từ client template
       if (tabId === "overview") {
         container.innerHTML = pageTemplates.overview;
@@ -1050,7 +1059,7 @@ document.addEventListener("DOMContentLoaded", () => {
         else loadHomeData();
         
       } catch (err) {
-        alert("Lỗi: " + err.message);
+        alert("Lỗi: " + err.message); 
       }
     });
   }
@@ -1129,7 +1138,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
-  // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
   async function loadBudgetsTab() {
     const container = document.getElementById("budget-detailed-list");
     if (!container) return;
@@ -1146,7 +1154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-success" role="status"></div></div>';
       
-      const response = await fetch(`/api/budget/check?user_id=${queryUserId}&month=6&year=2026`);
+      const response = await fetch(`/api/budget/check?user_id=${queryUserId}`);
       if (!response.ok) throw new Error("Không thể tải hạn mức ngân sách");
       
       const list = await response.json();
@@ -1828,6 +1836,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 9. BẮT ĐẦU KHỞI CHẠY (INITIALIZATION) ---
   (async function init() {
     await loadCategories();
-    switchTab("overview");
+    const urlParams = new URLSearchParams(window.location.search);
+    const startTab = urlParams.get("tab") || "overview";
+    switchTab(startTab);
   })();
 });
