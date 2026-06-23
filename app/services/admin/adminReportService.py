@@ -541,3 +541,295 @@ class AdminReportService:
                 return fontName
 
         return "Helvetica"
+
+    @classmethod
+    def buildOverviewReport(cls, month, year):
+        # 1. Total users
+        total_users = db.session.execute(text("SELECT COUNT(*) FROM tai_khoan")).scalar() or 0
+        
+        # 2. Premium users
+        premium_users = db.session.execute(text("SELECT COUNT(DISTINCT tai_khoan_id) FROM goi_premium WHERE trang_thai = 'ACTIVE'")).scalar() or 0
+        
+        # 3. Monthly transactions
+        month_txns = 0
+        try:
+            month_txns = db.session.execute(text("""
+                SELECT COUNT(*) FROM giao_dich 
+                WHERE DATE_FORMAT(ngay_giao_dich, '%Y-%m') = :ym
+            """), {"ym": f"{year}-{month:02d}"}).scalar() or 0
+        except Exception:
+            try:
+                month_txns = db.session.execute(text("""
+                    SELECT COUNT(*) FROM giao_dich 
+                    WHERE strftime('%Y-%m', ngay_giao_dich) = :ym
+                """), {"ym": f"{year}-{month:02d}"}).scalar() or 0
+            except Exception:
+                pass
+                
+        # 4. Monthly premium revenue
+        month_rev = 0.0
+        try:
+            month_rev_val = db.session.execute(text("""
+                SELECT SUM(so_tien) FROM thanh_toan 
+                WHERE trang_thai_thanh_toan = 'SUCCESS' 
+                AND DATE_FORMAT(ngay_thanh_toan, '%Y-%m') = :ym
+            """), {"ym": f"{year}-{month:02d}"}).scalar()
+            if month_rev_val is not None:
+                month_rev = float(month_rev_val)
+        except Exception:
+            try:
+                month_rev_val = db.session.execute(text("""
+                    SELECT SUM(so_tien) FROM thanh_toan 
+                    WHERE trang_thai_thanh_toan = 'SUCCESS' 
+                    AND strftime('%Y-%m', ngay_thanh_toan) = :ym
+                """), {"ym": f"{year}-{month:02d}"}).scalar()
+                if month_rev_val is not None:
+                    month_rev = float(month_rev_val)
+            except Exception:
+                pass
+
+        # 5. Users List
+        users = []
+        try:
+            users_res = db.session.execute(text("""
+                SELECT tk.id, nd.ho_ten, tk.email, tk.vai_tro, tk.ngay_tao 
+                FROM tai_khoan tk 
+                LEFT JOIN nguoi_dung nd ON nd.tai_khoan_id = tk.id 
+                ORDER BY tk.id ASC
+            """)).fetchall()
+            for r in users_res:
+                users.append({
+                    "id": r[0],
+                    "ho_ten": r[1] or "N/A",
+                    "email": r[2],
+                    "premium": "Có" if r[3] == "PREMIUM" else "Không",
+                    "ngay_tao": r[4]
+                })
+        except Exception as e:
+            print(f"Error fetching users for report: {e}")
+
+        # 6. Transactions List (Selected month only)
+        transactions = []
+        try:
+            txns_res = db.session.execute(text("""
+                SELECT gd.id, tk.email, dm.ten_danh_muc, gd.so_tien, gd.ngay_giao_dich 
+                FROM giao_dich gd 
+                LEFT JOIN tai_khoan tk ON tk.id = gd.tai_khoan_id 
+                LEFT JOIN danh_muc dm ON dm.id = gd.danh_muc_id 
+                WHERE DATE_FORMAT(gd.ngay_giao_dich, '%Y-%m') = :ym
+                ORDER BY gd.ngay_giao_dich DESC, gd.id DESC
+            """), {"ym": f"{year}-{month:02d}"}).fetchall()
+            for r in txns_res:
+                transactions.append({
+                    "id": r[0],
+                    "user": r[1] or "N/A",
+                    "danh_muc": r[2] or "N/A",
+                    "so_tien": float(r[3]),
+                    "ngay_giao_dich": r[4]
+                })
+        except Exception:
+            try:
+                txns_res = db.session.execute(text("""
+                    SELECT gd.id, tk.email, dm.ten_danh_muc, gd.so_tien, gd.ngay_giao_dich 
+                    FROM giao_dich gd 
+                    LEFT JOIN tai_khoan tk ON tk.id = gd.tai_khoan_id 
+                    LEFT JOIN danh_muc dm ON dm.id = gd.danh_muc_id 
+                    WHERE strftime('%Y-%m', gd.ngay_giao_dich) = :ym
+                    ORDER BY gd.ngay_giao_dich DESC, gd.id DESC
+                """), {"ym": f"{year}-{month:02d}"}).fetchall()
+                for r in txns_res:
+                    transactions.append({
+                        "id": r[0],
+                        "user": r[1] or "N/A",
+                        "danh_muc": r[2] or "N/A",
+                        "so_tien": float(r[3]),
+                        "ngay_giao_dich": r[4]
+                    })
+            except Exception as e:
+                print(f"Error fetching txns for report: {e}")
+
+        # Create Workbook
+        wb = Workbook()
+        
+        # Styles
+        titleFont = Font(bold=True, size=16, color="1E3A8A")
+        headerFont = Font(bold=True, color="0F172A")
+        italicFont = Font(italic=True, color="475569")
+        
+        titleFill = PatternFill("solid", fgColor="DDEBFF")
+        headerFill = PatternFill("solid", fgColor="E8F1FF")
+        statsFill = PatternFill("solid", fgColor="F8FAFC")
+        
+        borderSide = Side(style="thin", color="CBD5E1")
+        thinBorder = Border(left=borderSide, right=borderSide, top=borderSide, bottom=borderSide)
+        
+        # Sheet 1: Dashboard Summary
+        ws1 = wb.active
+        ws1.title = "Dashboard Summary"
+        
+        ws1.merge_cells("A1:C1")
+        ws1["A1"] = f"BÁO CÁO TỔNG QUAN HỆ THỐNG - THÁNG {month:02d}/{year}"
+        ws1["A1"].font = titleFont
+        ws1["A1"].fill = titleFill
+        ws1["A1"].alignment = Alignment(horizontal="center", vertical="center")
+        ws1.row_dimensions[1].height = 35
+        
+        ws1["A2"] = f"Ngày xuất: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+        ws1["A2"].font = italicFont
+        ws1.row_dimensions[2].height = 20
+        
+        summary_stats = [
+            ("Tổng người dùng", total_users, "người dùng"),
+            ("User Premium (Đang hoạt động)", premium_users, "người dùng"),
+            (f"Số lượng giao dịch (Tháng {month:02d}/{year})", month_txns, "giao dịch"),
+            (f"Doanh thu Premium (Tháng {month:02d}/{year})", month_rev, "money")
+        ]
+        
+        ws1.cell(row=4, column=1, value="Chỉ số thống kê").font = headerFont
+        ws1.cell(row=4, column=1).fill = headerFill
+        ws1.cell(row=4, column=1).border = thinBorder
+        
+        ws1.cell(row=4, column=2, value="Giá trị").font = headerFont
+        ws1.cell(row=4, column=2).fill = headerFill
+        ws1.cell(row=4, column=2).border = thinBorder
+        
+        ws1.cell(row=4, column=3, value="Đơn vị").font = headerFont
+        ws1.cell(row=4, column=3).fill = headerFill
+        ws1.cell(row=4, column=3).border = thinBorder
+        ws1.row_dimensions[4].height = 25
+        
+        for idx, (label, val, unit) in enumerate(summary_stats, start=5):
+            cell_lbl = ws1.cell(row=idx, column=1, value=label)
+            cell_lbl.border = thinBorder
+            cell_lbl.fill = statsFill
+            
+            cell_val = ws1.cell(row=idx, column=2, value=val)
+            cell_val.border = thinBorder
+            cell_val.fill = statsFill
+            if unit == "money":
+                cell_val.value = val
+                cell_val.number_format = '#,##0 "VNĐ"'
+            else:
+                cell_val.value = int(val)
+                cell_val.number_format = '#,##0'
+                
+            cell_unit = ws1.cell(row=idx, column=3, value="VNĐ" if unit == "money" else unit)
+            cell_unit.border = thinBorder
+            cell_unit.fill = statsFill
+            ws1.row_dimensions[idx].height = 22
+            
+        # Sheet 2: Users
+        ws2 = wb.create_sheet(title="Users")
+        ws2.merge_cells("A1:E1")
+        ws2["A1"] = "DANH SÁCH NGƯỜI DÙNG"
+        ws2["A1"].font = titleFont
+        ws2["A1"].fill = titleFill
+        ws2["A1"].alignment = Alignment(horizontal="center", vertical="center")
+        ws2.row_dimensions[1].height = 35
+        
+        user_headers = ["ID", "Họ tên", "Email", "Premium", "Ngày đăng ký"]
+        ws2.row_dimensions[3].height = 25
+        for col_idx, text_h in enumerate(user_headers, start=1):
+            c = ws2.cell(row=3, column=col_idx, value=text_h)
+            c.font = headerFont
+            c.fill = headerFill
+            c.border = thinBorder
+            c.alignment = Alignment(horizontal="center", vertical="center")
+            
+        for row_idx, u in enumerate(users, start=4):
+            ws2.row_dimensions[row_idx].height = 20
+            c_id = ws2.cell(row=row_idx, column=1, value=u["id"])
+            c_id.border = thinBorder
+            c_id.alignment = Alignment(horizontal="center")
+            
+            c_name = ws2.cell(row=row_idx, column=2, value=u["ho_ten"])
+            c_name.border = thinBorder
+            
+            c_email = ws2.cell(row=row_idx, column=3, value=u["email"])
+            c_email.border = thinBorder
+            
+            c_prem = ws2.cell(row=row_idx, column=4, value=u["premium"])
+            c_prem.border = thinBorder
+            c_prem.alignment = Alignment(horizontal="center")
+            if u["premium"] == "Có":
+                c_prem.font = Font(bold=True, color="10B981")
+            
+            c_date = ws2.cell(row=row_idx, column=5, value=u["ngay_tao"])
+            c_date.border = thinBorder
+            if u["ngay_tao"]:
+                c_date.value = cls._toDateTime(u["ngay_tao"])
+                c_date.number_format = "dd/mm/yyyy hh:mm:ss"
+                
+        # Sheet 3: Transactions
+        ws3 = wb.create_sheet(title="Transactions")
+        ws3.merge_cells("A1:E1")
+        ws3["A1"] = f"DANH SÁCH GIAO DỊCH THÁNG {month:02d}/{year}"
+        ws3["A1"].font = titleFont
+        ws3["A1"].fill = titleFill
+        ws3["A1"].alignment = Alignment(horizontal="center", vertical="center")
+        ws3.row_dimensions[1].height = 35
+        
+        txn_headers = ["ID", "User (Email)", "Danh mục", "Số tiền", "Ngày giao dịch"]
+        ws3.row_dimensions[3].height = 25
+        for col_idx, text_h in enumerate(txn_headers, start=1):
+            c = ws3.cell(row=3, column=col_idx, value=text_h)
+            c.font = headerFont
+            c.fill = headerFill
+            c.border = thinBorder
+            c.alignment = Alignment(horizontal="center", vertical="center")
+            
+        if transactions:
+            for row_idx, t in enumerate(transactions, start=4):
+                ws3.row_dimensions[row_idx].height = 20
+                c_id = ws3.cell(row=row_idx, column=1, value=t["id"])
+                c_id.border = thinBorder
+                c_id.alignment = Alignment(horizontal="center")
+                
+                c_user = ws3.cell(row=row_idx, column=2, value=t["user"])
+                c_user.border = thinBorder
+                
+                c_cat = ws3.cell(row=row_idx, column=3, value=t["danh_muc"])
+                c_cat.border = thinBorder
+                
+                c_amt = ws3.cell(row=row_idx, column=4, value=t["so_tien"])
+                c_amt.border = thinBorder
+                c_amt.number_format = '#,##0 "VNĐ"'
+                
+                c_date = ws3.cell(row=row_idx, column=5, value=t["ngay_giao_dich"])
+                c_date.border = thinBorder
+                if t["ngay_giao_dich"]:
+                    c_date.value = cls._toDateTime(t["ngay_giao_dich"])
+                    c_date.number_format = "dd/mm/yyyy"
+        else:
+            emptyCell = ws3.cell(row=4, column=1, value="Không có giao dịch nào trong tháng này")
+            emptyCell.border = thinBorder
+            emptyCell.alignment = Alignment(horizontal="center")
+            ws3.merge_cells("A4:E4")
+            ws3.row_dimensions[4].height = 25
+
+        # Autofit and layout
+        for ws in (ws1, ws2, ws3):
+            if ws != ws1:
+                ws.freeze_panes = "A4"
+            else:
+                ws.freeze_panes = "A5"
+                
+            for col in ws.columns:
+                max_len = 0
+                col_letter = get_column_letter(col[0].column)
+                for cell in col:
+                    if cell.coordinate in ws.merged_cells:
+                        continue
+                    val_str = str(cell.value or "")
+                    if len(val_str) > max_len:
+                        max_len = len(val_str)
+                ws.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 40)
+                
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        filename = f"expense-report-{month:02d}-{year}.xlsx"
+        mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        
+        return output, filename, mimetype

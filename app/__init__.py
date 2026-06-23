@@ -2,6 +2,7 @@ from flask import Flask, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
+from datetime import timedelta
 from flask_jwt_extended import (
     JWTManager, get_jwt, verify_jwt_in_request
 )
@@ -31,8 +32,9 @@ def create_app():
     
     # Cấu hình JWT
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "super-secret-jwt-key-12345")
-    app.config["JWT_TOKEN_LOCATION"] = ["cookies"] # Lưu JWT vào Cookie
+    app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
     app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # Tắt CSRF tạm thời để dễ test với Form HTML
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
     jwt = JWTManager(app)
 

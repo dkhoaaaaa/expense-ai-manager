@@ -1,0 +1,36 @@
+/* Premium Page Custom Styles - Đồng bộ 100% Dashboard */
+.premium-topbar-price {
+  background: var(--primary-light);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 8px 20px;
+  border-radius: 16px;
+}
+
+/* Border ngăn cách dọc trên màn hình md trở lên */
+@media (min-width: 768px) {
+  .border-start-md {
+    border-left: 1px solid var(--border) !important;
+  }
+}
+
+/* Custom Table style cho bảng so sánh giống giao dịch của dashboard */
+.table.custom-table th {
+  font-weight: 800;
+  color: var(--dark);
+  font-size: 14px;
+}
+
+.table.custom-table td {
+  font-size: 14px;
+  color: var(--dark);
+  font-weight: 500;
+}
+
+/* Icon Box cho Benefit Cards */
+.benefit-icon-box {
+  transition: transform 0.2s ease;
+}
+
+.app-card:hover .benefit-icon-box {
+  transform: scale(1.1);
+}

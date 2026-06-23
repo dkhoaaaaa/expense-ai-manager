@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let globalCategories = [];
   let userRole = "USER";
   let activeTab = "overview";
+  let currentPage = 1;
+  const ITEMS_PER_PAGE = 10;
   
   // Instance biểu đồ toàn cục để hủy và vẽ lại khi cần
   let incomeChartInstance = null;
@@ -240,6 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </tbody>
           </table>
         </div>
+        <div id="pagination" class="d-flex justify-content-center mt-3"></div>
       </div>
     `,
     budgets: `
@@ -462,7 +465,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentTabLabel) currentTabLabel.innerText = config.badge;
         if (topbarTitle) topbarTitle.innerText = config.title;
         if (topbarSubtext) topbarSubtext.innerText = config.description;
-        topbarActions.innerHTML = config.cta;
+        if (tabId === "settings") {
+          if (userRole === "PREMIUM" || userRole === "ADMIN") {
+            topbarActions.innerHTML = `
+              <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                <i class="bi bi-star-fill me-1"></i>Tài khoản Premium
+              </span>
+            `;
+          } else {
+            topbarActions.innerHTML = `
+              <button class="btn btn-main" type="button" onclick="window.location.href='/premium'">
+                <i class="bi bi-gem"></i>
+                <span>Đăng ký Premium</span>
+              </button>
+            `;
+          }
+        } else {
+          topbarActions.innerHTML = config.cta;
+        }
         
         // Xóa class để hoàn thành hiệu ứng mượt
         topbarText.classList.remove("fade-out");
@@ -479,22 +499,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Chờ animation fade-out chạy xong (150ms) rồi inject HTML và load data
     setTimeout(async () => {
-      // TODO: Module Transactions sẽ được Member phụ trách Transaction phát triển
+      // TODO: Module Budgets & Categories sẽ được Member phụ trách Budget phát triển
       if (tabId === "transactions") {
-        container.innerHTML = `
-          <div class="empty-state text-center py-5">
-              <i class="bi bi-folder-x display-3 text-secondary"></i>
-              <h3 class="mt-3">Module đang được phát triển</h3>
-              <p class="text-muted">
-                  Chức năng này đang được thành viên khác phụ trách phát triển.
-              </p>
-          </div>
-        `;
-        container.classList.remove("fade-out");
-        container.classList.add("fade-in");
-        return;
+      container.innerHTML = pageTemplates.transactions;
+      container.classList.remove("fade-out");
+      container.classList.add("fade-in");
+      loadTransactions();
+      return;
       }
-
       // Tab Ngân sách: render trực tiếp từ client template
       if (tabId === "budgets") {
         container.innerHTML = pageTemplates.budgets;
@@ -879,7 +891,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- 5. TAB 2: QUẢN LÝ GIAO DỊCH (TRANSACTIONS CRUD) ---
-  let transactionsData = [];
 
   async function loadTransactions() {
     const tableBody = document.getElementById("transaction-table-body");
@@ -910,13 +921,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTransactionsTable(list) {
     const tableBody = document.getElementById("transaction-table-body");
     if (!tableBody) return;
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
 
+    const paginatedList = list.slice(start, end);
     if (list.length === 0) {
       tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-secondary">Không tìm thấy giao dịch nào</td></tr>';
       return;
     }
 
-    tableBody.innerHTML = list.map(t => {
+    tableBody.innerHTML = paginatedList.map(t => {
       const isThu = t.type.toLowerCase() === "income" || t.type.toLowerCase() === "thu";
       const badgeClass = isThu ? "badge-income" : "badge-expense";
       const badgeText = isThu ? "Thu nhập" : "Chi tiêu";
@@ -952,7 +966,38 @@ document.addEventListener("DOMContentLoaded", () => {
         </tr>
       `;
     }).join("");
+    renderPagination(list.length);
   }
+
+  function renderPagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+    const container = document.getElementById("pagination");
+    if (!container) return;
+
+    let html = "";
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `
+        <button
+          class="btn btn-sm ${
+            i === currentPage
+              ? "btn-success"
+              : "btn-outline-success"
+          } me-1"
+          onclick="changePage(${i})">
+          ${i}
+        </button>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+window.changePage = function(page) {
+  currentPage = page;
+  renderTransactionsTable(transactionsData);
+};
 
   // Chức năng lọc giao dịch
   async function handleFilterTransactions() {
@@ -1016,11 +1061,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const amountEl = document.getElementById("add-tx-amount");
       const categoryIdEl = document.getElementById("add-tx-category");
       const descriptionEl = document.getElementById("add-tx-desc");
+      const dateEl = document.getElementById("add-tx-date");
 
       const type = typeEl ? typeEl.value : "CHI";
       const amount = amountEl ? parseFloat(amountEl.value) : 0;
       const categoryId = categoryIdEl ? parseInt(categoryIdEl.value) : 1;
       const description = descriptionEl ? descriptionEl.value : "";
+      const date = dateEl ? dateEl.value : "";
 
       try {
         const response = await fetch("/api/transactions", {
@@ -1030,7 +1077,8 @@ document.addEventListener("DOMContentLoaded", () => {
             amount: amount,
             type: type,
             category_id: categoryId,
-            description: description
+            description: description,
+            ngay_giao_dich: date
           })
         });
 
@@ -1050,7 +1098,7 @@ document.addEventListener("DOMContentLoaded", () => {
         else loadHomeData();
         
       } catch (err) {
-        alert("Lỗi: " + err.message);
+        alert("Lỗi: " + err.message); 
       }
     });
   }
@@ -1129,7 +1177,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
-  // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
   async function loadBudgetsTab() {
     const container = document.getElementById("budget-detailed-list");
     if (!container) return;
@@ -1146,7 +1193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-success" role="status"></div></div>';
       
-      const response = await fetch(`/api/budget/check?user_id=${queryUserId}&month=6&year=2026`);
+      const response = await fetch(`/api/budget/check`);
       if (!response.ok) throw new Error("Không thể tải hạn mức ngân sách");
       
       const list = await response.json();
@@ -1828,6 +1875,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 9. BẮT ĐẦU KHỞI CHẠY (INITIALIZATION) ---
   (async function init() {
     await loadCategories();
-    switchTab("overview");
+    const urlParams = new URLSearchParams(window.location.search);
+    const startTab = urlParams.get("tab") || "overview";
+    switchTab(startTab);
   })();
 });

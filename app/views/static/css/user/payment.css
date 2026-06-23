@@ -1,0 +1,131 @@
+/* CSS Giao diện thanh toán Custom - Tích hợp Dashboard */
+.payment-method-card {
+  border: 1px solid var(--border) !important;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-shadow: none !important;
+}
+
+.payment-method-card:hover {
+  border-color: var(--primary) !important;
+  background-color: var(--bg-soft) !important;
+  transform: translateY(-2px);
+}
+
+.payment-method-card.active {
+  border-color: var(--primary) !important;
+  background-color: var(--primary-light) !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.06) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.icon-circle {
+  flex-shrink: 0;
+}
+
+/* Toast Container & Notification Styles */
+.toast-container-custom {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast-notify {
+  min-width: 320px;
+  max-width: 420px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast-show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-hide {
+  transform: translateX(120%);
+  opacity: 0;
+}
+
+.toast-icon-box {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.toast-success .toast-icon-box {
+  color: #16a34a;
+}
+
+.toast-error .toast-icon-box {
+  color: #dc2626;
+}
+
+.toast-body-content {
+  flex: 1;
+}
+
+.toast-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.toast-message {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.toast-close-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toast-progress-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  width: 100%;
+  animation-name: toastProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.toast-success .toast-progress-bar {
+  background: #16a34a;
+}
+
+.toast-error .toast-progress-bar {
+  background: #dc2626;
+}
+
+@keyframes toastProgress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

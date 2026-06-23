@@ -44,6 +44,10 @@ CREATE TABLE nguoi_dung (
     gioi_tinh ENUM('NAM', 'NU', 'KHAC'),
     anh_dai_dien VARCHAR(255),
 
+    is_premium BOOLEAN DEFAULT FALSE,
+    premium_start_date DATETIME DEFAULT NULL,
+    premium_end_date DATETIME DEFAULT NULL,
+
     ngay_tao DATETIME DEFAULT CURRENT_TIMESTAMP,
     ngay_cap_nhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

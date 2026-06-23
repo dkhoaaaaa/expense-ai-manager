@@ -20,3 +20,15 @@ def role_required(*allowed_roles):
             return fn(*args, **kwargs)
         return decorator
     return wrapper
+
+def check_premium_status(account):
+    from datetime import datetime
+    from app import db
+    if not account or not account.nguoi_dung:
+        return
+    user = account.nguoi_dung
+    if user.is_premium and user.premium_end_date:
+        if user.premium_end_date < datetime.utcnow():
+            user.is_premium = False
+            account.vai_tro = 'USER'
+            db.session.commit()

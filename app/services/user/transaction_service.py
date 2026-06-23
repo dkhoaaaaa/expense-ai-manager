@@ -1,6 +1,7 @@
 from app import db
 from app.models.giaoDichModel import GiaoDich as Transaction
 from sqlalchemy import extract
+from datetime import datetime
 
 
 # ➕ CREATE TRANSACTION
@@ -10,7 +11,11 @@ def create_transaction(user_id, data):
         amount=data["amount"],
         type=data["type"],  # income / expense
         category_id=data["category_id"],
-        description=data.get("description", "")
+        description=data.get("description", ""),
+        ngayGiaoDich=datetime.strptime(
+            data["ngay_giao_dich"],
+            "%Y-%m-%d"
+        ).date()
     )
 
     db.session.add(t)

@@ -17,6 +17,10 @@ class NguoiDung(db.Model):
 
     avatar = db.Column("anh_dai_dien", db.String(255), nullable=True)
 
+    is_premium = db.Column(db.Boolean, default=False)
+    premium_start_date = db.Column(db.DateTime, nullable=True)
+    premium_end_date = db.Column(db.DateTime, nullable=True)
+
     ngayTao = db.Column("ngay_tao", db.DateTime)
     ngayCapNhat = db.Column("ngay_cap_nhat", db.DateTime)
 

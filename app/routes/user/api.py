@@ -19,6 +19,9 @@ def api_get_profile():
     if not account:
         return jsonify({"success": False, "error": "User not found"}), 404
 
+    from app.helpers import check_premium_status
+    check_premium_status(account)
+
     user_info = account.nguoi_dung
     return jsonify({
         "success": True,
@@ -130,3 +133,43 @@ def api_forgot_password():
         "debug_note": "Vì chưa có cấu hình gửi Email thật, dưới đây là mã token dùng để test",
         "mock_token": mock_reset_token
     }), 200
+
+@api_bp.route('/premium/activate', methods=['POST'])
+@jwt_required()
+def api_activate_premium():
+    from datetime import datetime, timedelta
+    from flask_jwt_extended import create_access_token, set_access_cookies, get_jwt
+    user_id = get_jwt_identity()
+    
+    from app.models.nguoiDungModel import NguoiDung
+    from app.models.taiKhoanModel import TaiKhoan
+    
+    user = NguoiDung.query.filter_by(tai_khoan_id=user_id).first()
+    account = TaiKhoan.query.get(user_id)
+    
+    if not user or not account:
+        return jsonify({"success": False, "error": "Người dùng không tồn tại"}), 404
+        
+    user.is_premium = True
+    user.premium_start_date = datetime.utcnow()
+    user.premium_end_date = datetime.utcnow() + timedelta(days=30)
+    
+    # Cập nhật vai trò tài khoản để đồng bộ hóa phân quyền
+    account.vai_tro = 'PREMIUM'
+    
+    db.session.commit()
+    
+    # Tạo lại access token mới có chứa role = 'PREMIUM' và set cookie
+    jwt_data = get_jwt()
+    access_token = create_access_token(identity=str(user_id), additional_claims={
+        "user_name": user.ho_ten, 
+        "user_avatar": user.anh_dai_dien,
+        "role": 'PREMIUM'
+    })
+    
+    response = jsonify({
+        "success": True,
+        "message": "Kích hoạt Premium thành công"
+    })
+    set_access_cookies(response, access_token)
+    return response, 200
