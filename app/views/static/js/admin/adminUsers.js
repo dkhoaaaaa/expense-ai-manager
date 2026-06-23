@@ -3,6 +3,13 @@
 
 let usersSearchTimer = null;
 
+// Initialize pagination state in AdminState
+if (typeof AdminState !== "undefined" && !AdminState.usersPage) {
+  AdminState.usersPage = 1;
+} else if (typeof AdminState === "undefined") {
+  window.AdminState = { usersPage: 1 };
+}
+
 function initUsersModule() {
   const searchInput = document.getElementById("searchUsersInput");
   const roleFilter = document.getElementById("filterUsersRole");
@@ -10,13 +17,19 @@ function initUsersModule() {
 
   if (searchInput) {
     searchInput.addEventListener("input", () => {
+      AdminState.usersPage = 1; // Reset to page 1 on search
       clearTimeout(usersSearchTimer);
       usersSearchTimer = setTimeout(populateUsersTable, 300);
     });
   }
 
   [roleFilter, statusFilter].forEach((element) => {
-    if (element) element.addEventListener("change", populateUsersTable);
+    if (element) {
+      element.addEventListener("change", () => {
+        AdminState.usersPage = 1; // Reset to page 1 on filter change
+        populateUsersTable();
+      });
+    }
   });
 }
 
@@ -34,6 +47,8 @@ async function populateUsersTable() {
     search: document.getElementById("searchUsersInput")?.value.trim() || "",
     role: document.getElementById("filterUsersRole")?.value || "ALL",
     status: document.getElementById("filterUsersStatus")?.value || "ALL",
+    page: AdminState.usersPage || 1,
+    per_page: 5,
   });
 
   const result = await fetchAdminUserApi(`/admin/api/users?${params.toString()}`);
@@ -46,14 +61,20 @@ async function populateUsersTable() {
       </tr>
     `;
     renderUserStats({});
+    renderUsersPagination(1, 1, 0, 5);
     return;
   }
 
   const users = result.data?.users || result.data?.items || [];
   const stats = result.data?.stats || result.data?.summary || {};
+  const page = result.data?.page || 1;
+  const totalPages = result.data?.total_pages || 1;
+  const totalItems = result.data?.total_items || 0;
+  const perPage = result.data?.per_page || 5;
 
   renderUserStats(stats);
   renderUsersTable(users);
+  renderUsersPagination(page, totalPages, totalItems, perPage);
 }
 
 function renderUsersTable(users) {
@@ -78,11 +99,7 @@ function renderUsersTable(users) {
         <td>${escapeUserHtml(user.email || "-")}</td>
         <td>${escapeUserHtml(user.hoTen || "-")}</td>
         <td>
-          <select class="form-select form-select-sm user-role-select" data-id="${user.id}">
-            ${renderRoleOption("USER", user.vaiTro)}
-            ${renderRoleOption("PREMIUM", user.vaiTro)}
-            ${renderRoleOption("ADMIN", user.vaiTro)}
-          </select>
+          ${renderUserRoleBadge(user.vaiTro)}
         </td>
         <td>
           <span class="badge ${getUserStatusClass(user.trangThai)}">
@@ -108,9 +125,76 @@ function renderUsersTable(users) {
   document.querySelectorAll(".btn-unban-user").forEach((button) => {
     button.addEventListener("click", () => unbanUser(button.dataset.id));
   });
+}
 
-  document.querySelectorAll(".user-role-select").forEach((select) => {
-    select.addEventListener("change", () => changeUserRole(select.dataset.id, select.value));
+function renderUserRoleBadge(role) {
+  const classMap = {
+    USER: "bg-blue-soft text-primary",
+    PREMIUM: "bg-yellow-soft text-warning fw-bold",
+    ADMIN: "bg-purple-soft text-purple fw-bold",
+  };
+  const badgeClass = classMap[role] || "bg-secondary text-light";
+  return `<span class="badge ${badgeClass}">${escapeUserHtml(role || "USER")}</span>`;
+}
+
+function renderUsersPagination(page, totalPages, totalItems, perPage) {
+  const paginationEl = document.getElementById("usersPagination");
+  const infoEl = document.getElementById("usersPaginationInfo");
+  if (!paginationEl || !infoEl) return;
+
+  if (totalItems === 0) {
+    infoEl.innerText = "Hiển thị 0-0 trên 0 người dùng";
+    paginationEl.innerHTML = "";
+    return;
+  }
+
+  const startItem = (page - 1) * perPage + 1;
+  const endItem = Math.min(page * perPage, totalItems);
+  infoEl.innerText = `Hiển thị ${startItem}-${endItem} trên ${totalItems} người dùng`;
+
+  let html = "";
+
+  // Prev Button
+  const prevDisabled = page === 1 ? "disabled" : "";
+  html += `
+    <li class="page-item ${prevDisabled}">
+      <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+  `;
+
+  // Number Buttons
+  for (let i = 1; i <= totalPages; i++) {
+    const activeClass = i === page ? "active" : "";
+    html += `
+      <li class="page-item ${activeClass}">
+        <a class="page-link" href="#" data-page="${i}">${i}</a>
+      </li>
+    `;
+  }
+
+  // Next Button
+  const nextDisabled = page === totalPages ? "disabled" : "";
+  html += `
+    <li class="page-item ${nextDisabled}">
+      <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  `;
+
+  paginationEl.innerHTML = html;
+
+  paginationEl.querySelectorAll(".page-link").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetPage = parseInt(link.dataset.page);
+      if (targetPage && targetPage !== page && targetPage >= 1 && targetPage <= totalPages) {
+        AdminState.usersPage = targetPage;
+        populateUsersTable();
+      }
+    });
   });
 }
 
@@ -235,7 +319,7 @@ function renderRoleOption(role, currentRole) {
 
 function renderUserActionButtons(user) {
   const detailButton = `
-    <button type="button" class="btn btn-outline-primary btn-user-detail" data-id="${user.id}" title="Xem chi tiết">
+    <button type="button" class="btn btn-outline-primary btn-action-custom btn-user-detail" data-id="${user.id}" title="Xem chi tiết">
       <i class="bi bi-eye"></i>
     </button>
   `;
@@ -244,7 +328,7 @@ function renderUserActionButtons(user) {
     return `
       <div class="btn-group btn-group-sm" role="group" aria-label="Hành động người dùng">
         ${detailButton}
-        <button type="button" class="btn btn-outline-success btn-unban-user" data-id="${user.id}" title="Mở khóa">
+        <button type="button" class="btn btn-outline-success btn-action-custom btn-unban-user" data-id="${user.id}" title="Mở khóa">
           <i class="bi bi-check-circle"></i>
         </button>
       </div>
@@ -254,7 +338,7 @@ function renderUserActionButtons(user) {
   return `
     <div class="btn-group btn-group-sm" role="group" aria-label="Hành động người dùng">
       ${detailButton}
-      <button type="button" class="btn btn-outline-danger btn-ban-user" data-id="${user.id}" title="Khóa">
+      <button type="button" class="btn btn-outline-danger btn-action-custom btn-ban-user" data-id="${user.id}" title="Khóa">
         <i class="bi bi-slash-circle"></i>
       </button>
     </div>

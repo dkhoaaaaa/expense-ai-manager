@@ -1154,7 +1154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-success" role="status"></div></div>';
       
-      const response = await fetch(`/api/budget/check?user_id=${queryUserId}`);
+      const response = await fetch(`/api/budget/check`);
       if (!response.ok) throw new Error("Không thể tải hạn mức ngân sách");
       
       const list = await response.json();

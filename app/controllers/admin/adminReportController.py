@@ -9,12 +9,18 @@ class AdminReportController:
     def exportReport():
         try:
             payload = request.get_json(silent=True) or {}
-            fileBytes, filename, mimetype = AdminReportService.buildReport(
-                reportType=payload.get("report_type") or payload.get("reportType"),
-                fileFormat=payload.get("format"),
-                fromDate=payload.get("from_date") or payload.get("fromDate"),
-                toDate=payload.get("to_date") or payload.get("toDate"),
-            )
+            month = payload.get("month")
+            year = payload.get("year")
+
+            if month is not None and year is not None:
+                fileBytes, filename, mimetype = AdminReportService.buildOverviewReport(int(month), int(year))
+            else:
+                fileBytes, filename, mimetype = AdminReportService.buildReport(
+                    reportType=payload.get("report_type") or payload.get("reportType"),
+                    fileFormat=payload.get("format") or "excel",
+                    fromDate=payload.get("from_date") or payload.get("fromDate"),
+                    toDate=payload.get("to_date") or payload.get("toDate"),
+                )
 
             return send_file(
                 fileBytes,

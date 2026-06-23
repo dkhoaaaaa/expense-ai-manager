@@ -13,6 +13,8 @@ class AdminUserManageController:
                 "search": request.args.get("search", ""),
                 "role": request.args.get("role", "ALL"),
                 "status": request.args.get("status", "ALL"),
+                "page": request.args.get("page", 1, type=int),
+                "per_page": request.args.get("per_page", 5, type=int),
             }
             result = AdminUserManageService.getUserList(filters)
             statusCode = 200 if result["success"] else 400

@@ -19,6 +19,75 @@ async function fetchDashboardStats() {
   }
 }
 
+document.getElementById("btnExportReport").addEventListener("click", async function() {
+  const btnExport = this;
+  btnExport.disabled = true;
+  const originalText = btnExport.innerHTML;
+  btnExport.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang xuất...`;
+
+  try {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+
+    const response = await fetch("/admin/api/reports/export", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + AdminState.token,
+      },
+      body: JSON.stringify({
+        report_type: "excel",
+        month: month,
+        year: year,
+      }),
+    });
+
+    if (response.status === 401) {
+      const result = await response.json();
+      handleUnauthorized(result);
+      return;
+    }
+
+    if (!response.ok) {
+      let errMsg = "Vui lòng thử lại sau";
+      try {
+        const result = await response.json();
+        errMsg = result.message || errMsg;
+      } catch (e) {}
+      
+      showToast(
+        "error",
+        "Không thể xuất báo cáo",
+        errMsg
+      );
+      return;
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("Content-Disposition") || "";
+    const fileNameMatch = disposition.match(/filename="?([^"]+)"?/);
+    const fileName = fileNameMatch ? fileNameMatch[1] : `expense-report-${String(month).padStart(2, '0')}-${year}.xlsx`;
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+
+    showToast("success", "Xuất báo cáo", "Tải báo cáo thành công");
+  } catch (error) {
+    console.error("Export report error:", error);
+    showToast("error", "Lỗi", error.message || "Không thể kết nối máy chủ");
+  } finally {
+    btnExport.innerHTML = originalText;
+    btnExport.disabled = false;
+  }
+});
+
 function updateStatsUI() {
   const dashboardData = AdminState.dashboardData;
   if (!dashboardData) return;
@@ -26,261 +95,65 @@ function updateStatsUI() {
   document.getElementById("stat-total-users").innerText =
     dashboardData.stats.totalUsers.toLocaleString();
   document.getElementById("stat-total-transactions").innerText =
-    dashboardData.stats.totalTransactions.toLocaleString();
+    (dashboardData.stats.currentMonthTransactions || 0).toLocaleString();
   document.getElementById("stat-premium-users").innerText =
     dashboardData.stats.premiumUsers.toLocaleString();
   document.getElementById("stat-total-revenue").innerText =
-    dashboardData.stats.revenue.toLocaleString() + "đ";
+    (dashboardData.stats.currentMonthRevenue || 0).toLocaleString() + "đ";
 
   document.getElementById("trend-users").innerHTML =
     `<i class="bi bi-arrow-up-right me-1"></i>${dashboardData.stats.usersTrend}`;
   document.getElementById("trend-transactions").innerHTML =
     `<i class="bi bi-arrow-up-right me-1"></i>${dashboardData.stats.transactionsTrend}`;
   document.getElementById("trend-premium").innerHTML =
-    `<i class="bi bi-arrow-up-right me-1"></i>${dashboardData.stats.premiumTrend}`;
+    `${dashboardData.stats.premiumTrend}`;
   document.getElementById("trend-revenue").innerHTML =
-    `<i class="bi bi-arrow-up-right me-1"></i>${dashboardData.stats.revenueTrend}`;
-
-  const dashAiModel = document.getElementById("dashAiModel");
-  const dashAiAccuracy = document.getElementById("dashAiAccuracy");
-  const dashAiSamples = document.getElementById("dashAiSamples");
-  const dashAiLastTrained = document.getElementById("dashAiLastTrained");
-  const dashAiConfidence = document.getElementById("dashAiConfidence");
-  const progressAccuracy = document.getElementById("progressAccuracy");
-  const progressConfidence = document.getElementById("progressConfidence");
-  const dashAiClassifiedToday = document.getElementById("dashAiClassifiedToday");
-
-  if (dashAiModel)
-    dashAiModel.innerText = dashboardData.aiModelStats.activeModel;
-  if (dashAiAccuracy)
-    dashAiAccuracy.innerText =
-      dashboardData.aiModelStats.accuracy.toFixed(1) + "%";
-  if (dashAiSamples)
-    dashAiSamples.innerText =
-      dashboardData.aiModelStats.totalTrained.toLocaleString() + " mẫu";
-  if (dashAiLastTrained)
-    dashAiLastTrained.innerText = dashboardData.aiModelStats.lastTrained;
-
-  if (dashAiConfidence && dashboardData.aiModelStats.averageConfidence) {
-    dashAiConfidence.innerText =
-      dashboardData.aiModelStats.averageConfidence.toFixed(0) + "%";
-  }
-  if (progressAccuracy) {
-    progressAccuracy.style.width = dashboardData.aiModelStats.accuracy + "%";
-  }
-  if (progressConfidence && dashboardData.aiModelStats.averageConfidence) {
-    progressConfidence.style.width =
-      dashboardData.aiModelStats.averageConfidence + "%";
-  }
-  if (dashAiClassifiedToday && dashboardData.aiModelStats.totalClassifiedToday) {
-    dashAiClassifiedToday.innerText =
-      dashboardData.aiModelStats.totalClassifiedToday.toLocaleString();
-  }
-
-  const activeModel = document.getElementById("aiActiveModel");
-  const totalTrained = document.getElementById("aiTotalTrained");
-  const lastTrained = document.getElementById("aiLastTrained");
-  const accuracyText = document.getElementById("aiAccuracyText");
-  const accuracyCircle = document.getElementById("aiAccuracyCircle");
-
-  if (activeModel)
-    activeModel.innerText = dashboardData.aiModelStats.activeModel;
-  if (totalTrained)
-    totalTrained.innerText =
-      dashboardData.aiModelStats.totalTrained.toLocaleString() + " mẫu";
-  if (lastTrained)
-    lastTrained.innerText = dashboardData.aiModelStats.lastTrained;
-  if (accuracyText)
-    accuracyText.innerText =
-      dashboardData.aiModelStats.accuracy.toFixed(1) + "%";
-
-  if (accuracyCircle) {
-    const acc = dashboardData.aiModelStats.accuracy;
-    const offset = 251.2 - (251.2 * acc) / 100;
-    accuracyCircle.style.strokeDashoffset = offset;
-  }
+    `${dashboardData.stats.revenueTrend}`;
 }
 
 function populateDashboardWidgets() {
   const dashboardData = AdminState.dashboardData;
   if (!dashboardData) return;
 
-  populateRecentTransactionsWidget(dashboardData);
-  populateNewUsersWidget(dashboardData);
-  populateSystemAlertsWidget(dashboardData);
-  populateChatbotLogsWidget(dashboardData);
+  populateRecentActivitiesTimeline(dashboardData);
 }
 
-function populateRecentTransactionsWidget(dashboardData) {
-  const txnBody = document.getElementById("dashRecentTxnBody");
-  if (!txnBody || !dashboardData.recentTransactions) return;
+function populateRecentActivitiesTimeline(dashboardData) {
+  const timelineEl = document.getElementById("recentActivitiesTimeline");
+  if (!timelineEl || !dashboardData.recentActivities) return;
 
-  txnBody.innerHTML = "";
-  const recentTxns = dashboardData.recentTransactions.slice(0, 5);
+  timelineEl.innerHTML = "";
+  const activities = dashboardData.recentActivities;
 
-  if (recentTxns.length === 0) {
-    txnBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Chưa có giao dịch nào.</td></tr>`;
-    return;
-  }
-
-  recentTxns.forEach((txn) => {
-    const tr = document.createElement("tr");
-    const typeBadge =
-      txn.loai === "THU"
-        ? `<span class="badge bg-success-soft text-success fw-bold">THU</span>`
-        : `<span class="badge bg-danger-soft text-danger fw-bold">CHI</span>`;
-    const amountClass = txn.loai === "THU" ? "plus" : "minus";
-    const amountPrefix = txn.loai === "THU" ? "+" : "-";
-    const statusBadge = `<span class="badge bg-success-soft text-success"><i class="bi bi-check-circle me-1"></i>${txn.trangThai}</span>`;
-
-    tr.innerHTML = `
-      <td class="fw-semibold">${txn.ten}</td>
-      <td>${typeBadge}</td>
-      <td class="fw-bold">${txn.danhMuc}</td>
-      <td><span class="txn-amount ${amountClass}">${amountPrefix}${txn.soTien.toLocaleString()}đ</span></td>
-      <td class="text-muted small">${txn.ngay}</td>
-      <td>${statusBadge}</td>
-    `;
-
-    txnBody.appendChild(tr);
-  });
-}
-
-function populateNewUsersWidget(dashboardData) {
-  const newUsersList = document.getElementById("dashNewUsersList");
-  if (!newUsersList || !dashboardData.newUsersList) return;
-
-  newUsersList.innerHTML = "";
-  const sortedUsers = dashboardData.newUsersList.slice(0, 5);
-
-  const avatarColors = [
-    "var(--grad-blue)",
-    "var(--grad-emerald)",
-    "var(--grad-purple)",
-    "var(--grad-orange)",
-    "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
-  ];
-
-  if (sortedUsers.length === 0) {
-    newUsersList.innerHTML = `<div class="text-center py-4 text-muted">Chưa có người dùng mới.</div>`;
-    return;
-  }
-
-  sortedUsers.forEach((user, idx) => {
-    const initial = user.ten
-      ? user.ten.charAt(0).toUpperCase()
-      : user.email.charAt(0).toUpperCase();
-    const color = avatarColors[idx % avatarColors.length];
-
-    let roleBadgeClass = "bg-primary-soft text-primary";
-    if (user.vaiTro === "PREMIUM")
-      roleBadgeClass = "bg-success-soft text-success";
-    if (user.vaiTro === "ADMIN")
-      roleBadgeClass = "bg-warning-soft text-warning";
-
-    const el = document.createElement("div");
-    el.className = "new-user-item";
-    el.innerHTML = `
-      <div class="new-user-avatar" style="background: ${color}">${initial}</div>
-      <div class="new-user-info">
-        <p class="new-user-email fw-bold text-truncate">${user.ten || user.email}</p>
-        <p class="new-user-date"><i class="bi bi-clock me-1"></i>${user.time || "Vừa xong"}</p>
-      </div>
-      <span class="badge new-user-badge ${roleBadgeClass}">${user.vaiTro}</span>
-    `;
-
-    newUsersList.appendChild(el);
-  });
-}
-
-function populateSystemAlertsWidget(dashboardData) {
-  const alertsList = document.getElementById("dashSystemAlertsList");
-  const alertCountBadge = document.getElementById("alertCountBadge");
-  if (!alertsList || !dashboardData.systemAlerts) return;
-
-  alertsList.innerHTML = "";
-  const alerts = dashboardData.systemAlerts;
-
-  if (alertCountBadge) {
-    alertCountBadge.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i>${alerts.length} cảnh báo`;
-  }
-
-  if (alerts.length === 0) {
-    alertsList.innerHTML = `<div class="text-center py-4 text-muted">Không có cảnh báo nào.</div>`;
+  if (activities.length === 0) {
+    timelineEl.innerHTML = `<div class="text-center py-4 text-muted">Chưa có hoạt động nào gần đây.</div>`;
     return;
   }
 
   const iconMap = {
-    danger: "bi-exclamation-circle-fill",
-    warning: "bi-exclamation-triangle-fill",
-    info: "bi-info-circle-fill",
-    success: "bi-check-circle-fill",
+    "USER_SIGNUP": { icon: "bi-person-plus", class: "timeline-icon-signup" },
+    "PREMIUM_PURCHASE": { icon: "bi-gem", class: "timeline-icon-premium" },
+    "PAYMENT_SUCCESS": { icon: "bi-cash-coin", class: "timeline-icon-payment" },
+    "AI_PREDICTION": { icon: "bi-cpu", class: "timeline-icon-ai" }
   };
 
-  alerts.forEach((alert) => {
-    const level = alert.level || "info";
-    const iconClass = iconMap[level] || iconMap.info;
-
-    let detail = alert.detail;
-    let time = alert.time;
-
-    if (!detail) {
-      if (alert.title.includes("giao dịch")) {
-        detail =
-          "Phát hiện một số giao dịch tự động phân loại bằng AI nhưng có độ tin cậy thấp.";
-        time = "10 phút trước";
-      } else if (alert.title.includes("Premium")) {
-        detail = "Thời hạn còn lại dưới 3 ngày, cần nhắc nhở gia hạn.";
-        time = "1 giờ trước";
-      } else if (alert.title.includes("chatbot")) {
-        detail =
-          "Phát hiện lỗi ngoại lệ khi hệ thống trả lời câu hỏi của người dùng.";
-        time = "2 giờ trước";
-      } else {
-        detail = "Cần kiểm tra trạng thái hoạt động hệ thống.";
-        time = "Vừa xong";
-      }
-    }
-
-    const el = document.createElement("div");
-    el.className = `system-alert-item alert-${level}`;
-    el.innerHTML = `
-      <i class="bi ${iconClass} system-alert-icon text-${level}"></i>
-      <div class="system-alert-content">
-        <h6 class="system-alert-title">${alert.title}</h6>
-        <p class="system-alert-desc">${detail}</p>
-        <span class="system-alert-time">${time}</span>
+  activities.forEach(act => {
+    const iconInfo = iconMap[act.type] || { icon: "bi-info-circle", class: "bg-secondary" };
+    const itemEl = document.createElement("div");
+    itemEl.className = "timeline-item";
+    itemEl.innerHTML = `
+      <div class="timeline-icon-box ${iconInfo.class}">
+        <i class="bi ${iconInfo.icon}"></i>
+      </div>
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+        <div>
+          <h6 class="fw-bold mb-1 text-dark" style="font-size: 14px;">${act.title}</h6>
+          <p class="text-muted mb-0" style="font-size: 13px;">${act.description}</p>
+        </div>
+        <span class="text-muted small font-monospace">${act.time}</span>
       </div>
     `;
-
-    alertsList.appendChild(el);
-  });
-}
-
-function populateChatbotLogsWidget(dashboardData) {
-  const chatbotBody = document.getElementById("dashChatbotLogsBody");
-  if (!chatbotBody || !dashboardData.chatbotLogs) return;
-
-  chatbotBody.innerHTML = "";
-  const logs = dashboardData.chatbotLogs.slice(0, 5);
-
-  if (logs.length === 0) {
-    chatbotBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Chưa có hoạt động chatbot nào.</td></tr>`;
-    return;
-  }
-
-  logs.forEach((log) => {
-    const tr = document.createElement("tr");
-    const statusBadge = `<span class="badge bg-success-soft text-success"><i class="bi bi-chat-left-check me-1"></i>${log.trangThai}</span>`;
-
-    tr.innerHTML = `
-      <td class="fw-semibold">${log.email}</td>
-      <td class="text-truncate" style="max-width: 300px;">"${log.cauHoi}"</td>
-      <td class="text-muted small">${log.time}</td>
-      <td>${statusBadge}</td>
-    `;
-
-    chatbotBody.appendChild(tr);
+    timelineEl.appendChild(itemEl);
   });
 }
 
@@ -401,6 +274,27 @@ function initUserPremiumRatioChart(dashboardData, textColour, isDark) {
 }
 
 function initOverviewModule() {
+  const btnRefresh = document.getElementById("btnRefreshStats");
+  if (btnRefresh && !btnRefresh.dataset.listenerBound) {
+    btnRefresh.addEventListener("click", async () => {
+      btnRefresh.disabled = true;
+      const originalText = btnRefresh.innerHTML;
+      btnRefresh.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang tải...`;
+      
+      await fetchDashboardStats();
+      initDashboardCharts();
+      populateDashboardWidgets();
+      
+      btnRefresh.innerHTML = originalText;
+      btnRefresh.disabled = false;
+      
+      if (typeof showToast === "function") {
+        showToast("success", "Thành công", "Đã cập nhật dữ liệu mới nhất.");
+      }
+    });
+    btnRefresh.dataset.listenerBound = "true";
+  }
+
   return fetchDashboardStats().then(() => {
     initDashboardCharts();
     populateDashboardWidgets();

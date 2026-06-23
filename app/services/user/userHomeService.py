@@ -46,6 +46,13 @@ class UserHomeService:
         }
 
         try:
+            # Check và cập nhật hạn dùng Premium
+            from app.models.taiKhoanModel import TaiKhoan
+            account = TaiKhoan.query.get(userId)
+            if account:
+                from app.helpers import check_premium_status
+                check_premium_status(account)
+
             # 1. Lấy thông tin user
             userResult = db.session.execute(
                 text("""

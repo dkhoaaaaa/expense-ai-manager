@@ -17,6 +17,10 @@ def profile():
     user_id = get_jwt_identity()
     from app.models.taiKhoanModel import TaiKhoan
     current_user = TaiKhoan.query.get(user_id)
+    
+    from app.helpers import check_premium_status
+    check_premium_status(current_user)
+    
     return render_template("user/profile.html", account=current_user)
 
 @user_bp.route('/ai-assistant')
@@ -248,3 +252,13 @@ def upgrade_premium():
 @role_required('PREMIUM', 'ADMIN')
 def premium_dashboard():
     return "<h1>Chào mừng VIP! Middleware đã cho phép bạn vào trang này.</h1><br><a href='/'>Quay lại trang chủ</a>"
+
+@user_bp.route('/premium')
+@jwt_required()
+def premium_page():
+    return render_template("user/premium.html")
+
+@user_bp.route('/premium/payment')
+@jwt_required()
+def premium_payment_page():
+    return render_template("user/payment.html")

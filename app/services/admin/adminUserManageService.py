@@ -6,7 +6,7 @@ from app.models.taiKhoanModel import TaiKhoan
 
 
 class AdminUserManageService:
-    VALID_FILTER_ROLES = {"ALL", "USER", "PREMIUM", "ADMIN"}
+    VALID_FILTER_ROLES = {"ALL", "USER", "PREMIUM"}
     VALID_ROLES = {"USER", "PREMIUM", "ADMIN"}
     VALID_FILTER_STATUSES = {"ALL", "ACTIVE", "BANNED"}
     VALID_STATUSES = {"ACTIVE", "BANNED"}
@@ -17,10 +17,19 @@ class AdminUserManageService:
         if not validationResult["success"]:
             return validationResult
 
-        query = AdminUserManageService.baseQuery()
-        query = AdminUserManageService.applyFilters(query, validationResult["data"])
+        validatedData = validationResult["data"]
+        page = validatedData["page"]
+        per_page = validatedData["per_page"]
+        offset = (page - 1) * per_page
 
-        rows = query.order_by(TaiKhoan.ngayTao.desc(), TaiKhoan.id.desc()).all()
+        query = AdminUserManageService.baseQuery()
+        query = AdminUserManageService.applyFilters(query, validatedData)
+
+        # Count total records matching filters
+        total_items = query.count()
+        total_pages = (total_items + per_page - 1) // per_page if total_items > 0 else 1
+
+        rows = query.order_by(TaiKhoan.id.asc()).offset(offset).limit(per_page).all()
         users = [AdminUserManageService.buildUserItem(row) for row in rows]
         stats = AdminUserManageService.getUserStats(query)
 
@@ -32,6 +41,10 @@ class AdminUserManageService:
                 "stats": stats,
                 "items": users,
                 "summary": stats,
+                "page": page,
+                "per_page": per_page,
+                "total_items": total_items,
+                "total_pages": total_pages,
             },
         }
 
@@ -168,6 +181,8 @@ class AdminUserManageService:
                 "search": (filters.get("search") or "").strip(),
                 "role": role,
                 "status": status,
+                "page": max(1, int(filters.get("page", 1))),
+                "per_page": max(1, int(filters.get("per_page", 5))),
             },
         }
 
@@ -183,6 +198,9 @@ class AdminUserManageService:
         search = filters["search"]
         role = filters["role"]
         status = filters["status"]
+
+        # luon loai bo tai khoan ADMIN khoi danh sach nguoi dung
+        query = query.filter(TaiKhoan.vaiTro != "ADMIN")
 
         if search:
             likeSearch = f"%{search}%"

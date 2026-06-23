@@ -159,52 +159,160 @@
               >
             </div>
           </div>
-
-          <div class="topbar-center">
-            <div class="topbar-search">
-              <i class="bi bi-search topbar-search-icon"></i>
-              <input
-                type="text"
-                class="topbar-search-input"
-                id="globalSearch"
-                placeholder="Tìm user, email, giao dịch..."
-                autocomplete="off"
-              />
-            </div>
-          </div>
-
-          <div class="topbar-right">
-            <!-- Light/Dark Mode Switcher -->
-            <button class="icon-btn" id="themeToggle" title="Đổi giao diện">
-              <i class="bi bi-moon-stars" id="themeIcon"></i>
-            </button>
-            <!-- Notifications Button -->
-            <button
-              class="icon-btn position-relative"
-              id="notificationsBtn"
-              title="Thông báo"
-            >
-              <i class="bi bi-bell"></i>
-              <span
-                class="position-absolute top-2 start-75 translate-middle p-1 bg-danger border border-light rounded-circle"
-              >
-                <span class="visually-hidden">New alerts</span>
-              </span>
-            </button>
-          </div>
         </header>
 
         <!-- MAIN DYNAMIC CONTENT -->
         <div class="content">
           <!-- 1. OVERVIEW / DASHBOARD PANEL (Active by default) -->
           <section class="tab-pane active-pane" id="tab-overview">
+            <style>
+              .timeline-container {
+                position: relative;
+                padding: 10px 0;
+              }
+              .timeline-item {
+                position: relative;
+                padding-left: 30px;
+                padding-bottom: 20px;
+                border-left: 2px solid #e9ecef;
+              }
+              .timeline-item:last-child {
+                border-left: 2px solid transparent;
+                padding-bottom: 0;
+              }
+              .timeline-icon-box {
+                position: absolute;
+                left: -13px;
+                top: 0;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid #fff;
+                font-size: 11px;
+                color: #fff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+              .timeline-icon-signup {
+                background: #0d6efd;
+              }
+              .timeline-icon-premium {
+                background: #ffc107;
+              }
+              .timeline-icon-payment {
+                background: #198754;
+              }
+              .timeline-icon-ai {
+                background: #6f42c1;
+              }
+              #btnRefreshStats {
+                border-radius: 14px !important;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+              }
+              #btnRefreshStats:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+              }
+              
+              /* Custom table action buttons - SaaS Premium Style */
+              .custom-table .btn-action-custom {
+                width: 36px;
+                height: 36px;
+                padding: 0 !important;
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px !important;
+                border: none !important;
+                font-size: 15px !important;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                margin: 0 4px;
+                cursor: pointer;
+              }
+              .custom-table .btn-action-custom i {
+                font-size: 15px;
+              }
+              .custom-table .btn-user-detail {
+                background-color: rgba(59, 130, 246, 0.1) !important;
+                color: #3b82f6 !important;
+              }
+              .custom-table .btn-user-detail:hover {
+                background-color: #3b82f6 !important;
+                color: #ffffff !important;
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25) !important;
+              }
+              .custom-table .btn-ban-user {
+                background-color: rgba(239, 68, 68, 0.1) !important;
+                color: #ef4444 !important;
+              }
+              .custom-table .btn-ban-user:hover {
+                background-color: #ef4444 !important;
+                color: #ffffff !important;
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25) !important;
+              }
+              .custom-table .btn-unban-user {
+                background-color: rgba(16, 185, 129, 0.1) !important;
+                color: #10b981 !important;
+              }
+              .custom-table .btn-unban-user:hover {
+                background-color: #10b981 !important;
+                color: #ffffff !important;
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25) !important;
+              }
+
+              /* soft badges classes */
+              .bg-blue-soft {
+                background-color: rgba(59, 130, 246, 0.1) !important;
+                color: #3b82f6 !important;
+              }
+              .bg-yellow-soft {
+                background-color: rgba(245, 158, 11, 0.1) !important;
+                color: #f59e0b !important;
+              }
+              .bg-purple-soft {
+                background-color: rgba(139, 92, 246, 0.1) !important;
+                color: #8b5cf6 !important;
+              }
+              .bg-success-soft {
+                background-color: rgba(16, 185, 129, 0.1) !important;
+                color: #10b981 !important;
+              }
+              .bg-danger-soft {
+                background-color: rgba(239, 68, 68, 0.1) !important;
+                color: #ef4444 !important;
+              }
+
+              /* Pagination Styling */
+              .pagination .page-link {
+                border-radius: 8px !important;
+                margin: 0 2px;
+                color: #475569;
+                border: 1px solid #cbd5e1;
+                transition: all 0.2s ease;
+              }
+              .pagination .page-item.active .page-link {
+                background-color: #3b82f6 !important;
+                border-color: #3b82f6 !important;
+                color: #fff !important;
+              }
+              .pagination .page-link:hover {
+                background-color: #f1f5f9;
+                color: #1e293b;
+              }
+            </style>
+
             <!-- Greeting & Quick Actions -->
             <div
               class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4"
             >
               <div class="dashboard-greeting">
                 <h2 class="greeting-title">
-                  Xin chào, <span id="greetingAdminName">Administrator</span> 👋
+                  Xin chào, <span id="greetingAdminName">Administrator</span>
                 </h2>
                 <p class="greeting-subtitle text-muted mb-0">
                   Theo dõi toàn bộ hoạt động của hệ thống Expense AI Manager
@@ -214,15 +322,15 @@
               <div class="d-flex gap-2">
                 <button
                   class="btn btn-secondary-glow px-3 py-2 text-primary border-primary bg-primary-soft"
-                  id="btnExportReport"
+                  id="btnRefreshStats"
                 >
-                  <i class="bi bi-file-earmark-arrow-down me-1"></i>Xuất báo cáo
+                  <i class="bi bi-arrow-clockwise me-1"></i>Làm mới dữ liệu
                 </button>
                 <button
                   class="btn btn-primary-gradient px-3 py-2"
-                  id="btnTrainAI"
+                  id="btnExportReport"
                 >
-                  <i class="bi bi-cpu me-1"></i>Huấn luyện AI
+                  <i class="bi bi-file-earmark-arrow-down me-1"></i>Xuất báo cáo
                 </button>
               </div>
             </div>
@@ -232,10 +340,10 @@
               <!-- Card 1: Tổng người dùng -->
               <div class="col-md-6 col-xl-3">
                 <div
-                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                  class="stat-card-new card shadow-sm border-light-subtle p-3 rounded-4 bg-white"
                 >
                   <div
-                    class="d-flex justify-content-between align-items-center mb-3"
+                    class="d-flex justify-content-between align-items-center mb-2"
                   >
                     <span class="stat-title-new text-muted fw-bold"
                       >Tổng người dùng</span
@@ -244,35 +352,34 @@
                       <i class="bi bi-people-fill"></i>
                     </div>
                   </div>
-                  <h3 class="stat-value-new fw-bold mb-2" id="stat-total-users">
+                  <h3 class="stat-value-new fw-bold mb-1" id="stat-total-users">
                     0
                   </h3>
                   <span
                     class="badge badge-trend-new bg-blue-soft text-primary"
                     id="trend-users"
                   >
-                    <i class="bi bi-arrow-up-right me-1"></i>+12 người dùng mới
-                    hôm nay
+                    +0 mới hôm nay
                   </span>
                 </div>
               </div>
               <!-- Card 2: User Premium -->
               <div class="col-md-6 col-xl-3">
                 <div
-                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                  class="stat-card-new card shadow-sm border-light-subtle p-3 rounded-4 bg-white"
                 >
                   <div
-                    class="d-flex justify-content-between align-items-center mb-3"
+                    class="d-flex justify-content-between align-items-center mb-2"
                   >
                     <span class="stat-title-new text-muted fw-bold"
-                      >User Premium</span
+                      >Premium Users</span
                     >
                     <div class="stat-icon-square bg-yellow-light text-warning">
-                      <i class="bi bi-crown-fill"></i>
+                      <i class="bi bi-gem"></i>
                     </div>
                   </div>
                   <h3
-                    class="stat-value-new fw-bold mb-2"
+                    class="stat-value-new fw-bold mb-1"
                     id="stat-premium-users"
                   >
                     0
@@ -281,17 +388,17 @@
                     class="badge badge-trend-new bg-yellow-soft text-warning"
                     id="trend-premium"
                   >
-                    Chiếm 26.1% tổng user
+                    Chiếm 0%
                   </span>
                 </div>
               </div>
               <!-- Card 3: Giao dịch tháng này -->
               <div class="col-md-6 col-xl-3">
                 <div
-                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                  class="stat-card-new card shadow-sm border-light-subtle p-3 rounded-4 bg-white"
                 >
                   <div
-                    class="d-flex justify-content-between align-items-center mb-3"
+                    class="d-flex justify-content-between align-items-center mb-2"
                   >
                     <span class="stat-title-new text-muted fw-bold"
                       >Giao dịch tháng này</span
@@ -301,7 +408,7 @@
                     </div>
                   </div>
                   <h3
-                    class="stat-value-new fw-bold mb-2"
+                    class="stat-value-new fw-bold mb-1"
                     id="stat-total-transactions"
                   >
                     0
@@ -310,28 +417,27 @@
                     class="badge badge-trend-new bg-emerald-soft text-success"
                     id="trend-transactions"
                   >
-                    <i class="bi bi-arrow-up-right me-1"></i>+18.4% so với tháng
-                    trước
+                    +0% tháng trước
                   </span>
                 </div>
               </div>
               <!-- Card 4: Doanh thu Premium -->
               <div class="col-md-6 col-xl-3">
                 <div
-                  class="stat-card-new card shadow-sm border-light-subtle p-4 rounded-4 bg-white"
+                  class="stat-card-new card shadow-sm border-light-subtle p-3 rounded-4 bg-white"
                 >
                   <div
-                    class="d-flex justify-content-between align-items-center mb-3"
+                    class="d-flex justify-content-between align-items-center mb-2"
                   >
                     <span class="stat-title-new text-muted fw-bold"
-                      >Doanh thu Premium</span
+                      >Doanh thu Premium tháng này</span
                     >
                     <div class="stat-icon-square bg-purple-light text-purple">
                       <i class="bi bi-wallet2"></i>
                     </div>
                   </div>
                   <h3
-                    class="stat-value-new fw-bold mb-2"
+                    class="stat-value-new fw-bold mb-1"
                     id="stat-total-revenue"
                   >
                     0đ
@@ -340,7 +446,7 @@
                     class="badge badge-trend-new bg-purple-soft text-purple"
                     id="trend-revenue"
                   >
-                    32 giao dịch thanh toán mới
+                    0 giao dịch mới
                   </span>
                 </div>
               </div>
@@ -378,246 +484,28 @@
               </div>
             </div>
 
-            <!-- Section 3: Tables & Users List -->
-            <div class="row g-4 mb-4">
-              <!-- Giao dịch gần đây -->
-              <div class="col-lg-7">
-                <div class="chart-card card-glow h-100">
-                  <div
-                    class="d-flex align-items-center justify-content-between mb-3"
-                  >
-                    <h4 class="chart-title mb-0">Giao dịch gần đây</h4>
-                    <span class="badge bg-primary-soft text-primary"
-                      ><i class="bi bi-clock-history me-1"></i>Mới nhất</span
-                    >
-                  </div>
-                  <div class="table-responsive">
-                    <table
-                      class="table table-hover align-middle custom-table mb-0"
-                    >
-                      <thead>
-                        <tr>
-                          <th>Người dùng</th>
-                          <th>Loại</th>
-                          <th>Danh mục</th>
-                          <th>Số tiền</th>
-                          <th>Ngày</th>
-                          <th>Trạng thái</th>
-                        </tr>
-                      </thead>
-                      <tbody id="dashRecentTxnBody">
-                        <tr>
-                          <td colspan="6" class="text-center text-muted py-4">
-                            <div
-                              class="spinner-border spinner-border-sm text-success"
-                              role="status"
-                            ></div>
-                            Đang tải...
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              <!-- Người dùng mới -->
-              <div class="col-lg-5">
-                <div class="chart-card card-glow h-100">
-                  <div
-                    class="d-flex align-items-center justify-content-between mb-3"
-                  >
-                    <h4 class="chart-title mb-0">Người dùng mới</h4>
-                    <span class="badge bg-info-soft text-info"
-                      ><i class="bi bi-person-plus me-1"></i>Hôm nay</span
-                    >
-                  </div>
-                  <div class="new-users-list" id="dashNewUsersList">
-                    <div class="text-center py-4 text-muted">
-                      <div
-                        class="spinner-border spinner-border-sm text-success"
-                        role="status"
-                      ></div>
-                      Đang tải...
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Section 4: AI Model & Alerts -->
-            <div class="row g-4 mb-4">
-              <!-- Trạng thái AI Model -->
-              <div class="col-lg-5">
-                <div class="chart-card card-glow h-100">
-                  <div
-                    class="d-flex align-items-center justify-content-between mb-3"
-                  >
-                    <h4 class="chart-title mb-0">Trạng thái AI Model</h4>
-                    <span
-                      class="badge bg-success-soft text-success"
-                      id="aiStatusBadge"
-                      ><i class="bi bi-check-circle me-1"></i>Hoạt động</span
-                    >
-                  </div>
-                  <div class="ai-info-wrapper">
-                    <ul
-                      class="list-group list-group-flush mb-3"
-                      style="font-size: 13.5px"
-                    >
-                      <li
-                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
-                      >
-                        <span class="text-muted">Model hiện tại:</span>
-                        <strong id="dashAiModel">Logistic Regression</strong>
-                      </li>
-                      <li
-                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
-                      >
-                        <span class="text-muted">Số mẫu training:</span>
-                        <strong id="dashAiSamples">2,450</strong>
-                      </li>
-                      <li
-                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
-                      >
-                        <span class="text-muted">Lần train gần nhất:</span>
-                        <strong id="dashAiLastTrained">04/06/2026</strong>
-                      </li>
-                      <li
-                        class="list-group-item d-flex justify-content-between py-2 border-0 bg-transparent px-0"
-                      >
-                        <span class="text-muted"
-                          >Tổng lần phân loại hôm nay:</span
-                        >
-                        <strong id="dashAiClassifiedToday">586</strong>
-                      </li>
-                    </ul>
 
-                    <!-- Accuracy Progress -->
-                    <div class="mb-3">
-                      <div
-                        class="d-flex justify-content-between mb-1"
-                        style="font-size: 12px"
-                      >
-                        <span class="text-muted">Accuracy:</span>
-                        <strong class="text-success" id="dashAiAccuracy"
-                          >87.5%</strong
-                        >
-                      </div>
-                      <div class="progress progress-custom" style="height: 6px">
-                        <div
-                          class="progress-bar bg-success"
-                          id="progressAccuracy"
-                          role="progressbar"
-                          style="width: 87.5%"
-                        ></div>
-                      </div>
-                    </div>
-
-                    <!-- Confidence Progress -->
-                    <div class="mb-4">
-                      <div
-                        class="d-flex justify-content-between mb-1"
-                        style="font-size: 12px"
-                      >
-                        <span class="text-muted">Confidence trung bình:</span>
-                        <strong class="text-primary" id="dashAiConfidence"
-                          >82%</strong
-                        >
-                      </div>
-                      <div class="progress progress-custom" style="height: 6px">
-                        <div
-                          class="progress-bar bg-primary"
-                          id="progressConfidence"
-                          role="progressbar"
-                          style="width: 82%"
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                      <button
-                        class="btn btn-primary-gradient w-50 py-2"
-                        id="btnRetrainAIModal"
-                        style="font-size: 12px"
-                      >
-                        <i class="bi bi-arrow-repeat me-1"></i>Train lại model
-                      </button>
-                      <button
-                        class="btn btn-secondary-glow w-50 py-2 border-primary text-primary bg-primary-soft"
-                        id="btnUploadTraining"
-                        style="font-size: 12px"
-                      >
-                        <i class="bi bi-upload me-1"></i>Upload dữ liệu
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Cảnh báo hệ thống -->
-              <div class="col-lg-7">
-                <div class="chart-card card-glow h-100">
-                  <div
-                    class="d-flex align-items-center justify-content-between mb-3"
-                  >
-                    <h4 class="chart-title mb-0">Cảnh báo hệ thống</h4>
-                    <span
-                      class="badge bg-danger-soft text-danger"
-                      id="alertCountBadge"
-                      ><i class="bi bi-exclamation-triangle me-1"></i>0 cảnh
-                      báo</span
-                    >
-                  </div>
-                  <div class="system-alerts-list" id="dashSystemAlertsList">
-                    <div class="text-center py-4 text-muted">
-                      <div
-                        class="spinner-border spinner-border-sm text-success"
-                        role="status"
-                      ></div>
-                      Đang tải...
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Section 5: Chatbot Logs ngắn -->
+            <!-- Section 5: Hoạt động gần đây -->
             <div class="row g-4 mb-4">
               <div class="col-12">
                 <div class="chart-card card-glow">
                   <div
-                    class="d-flex align-items-center justify-content-between mb-3"
+                    class="d-flex align-items-center justify-content-between mb-4"
                   >
-                    <h4 class="chart-title mb-0">Hoạt động Chatbot gần đây</h4>
-                    <span class="badge bg-secondary-soft text-muted"
-                      ><i class="bi bi-chat-left-text me-1"></i>Thời gian
-                      thực</span
+                    <h4 class="chart-title mb-0">Hoạt động gần đây</h4>
+                    <span class="badge bg-primary-soft text-primary"
+                      ><i class="bi bi-clock-history me-1"></i>Mới nhất</span
                     >
                   </div>
-                  <div class="table-responsive">
-                    <table
-                      class="table table-hover align-middle custom-table mb-0"
-                    >
-                      <thead>
-                        <tr>
-                          <th>User</th>
-                          <th>Câu hỏi gần nhất</th>
-                          <th>Thời gian</th>
-                          <th>Trạng thái</th>
-                        </tr>
-                      </thead>
-                      <tbody id="dashChatbotLogsBody">
-                        <tr>
-                          <td colspan="4" class="text-center text-muted py-4">
-                            <div
-                              class="spinner-border spinner-border-sm text-success"
-                              role="status"
-                            ></div>
-                            Đang tải...
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div class="timeline-container" id="recentActivitiesTimeline">
+                    <div class="text-center py-4 text-muted">
+                      <div
+                        class="spinner-border spinner-border-sm text-primary"
+                        role="status"
+                      ></div>
+                      <p class="mt-2 mb-0">Đang tải hoạt động...</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -645,7 +533,6 @@
                     <option value="ALL">Tất cả vai trò</option>
                     <option value="USER">USER</option>
                     <option value="PREMIUM">PREMIUM</option>
-                    <option value="ADMIN">ADMIN</option>
                   </select>
                   <select
                     class="form-select table-filter-select"
@@ -660,26 +547,38 @@
               <div class="row g-3 mb-4">
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
-                    <small class="text-muted d-block mb-1">Tổng người dùng</small>
-                    <strong class="text-primary fs-4" id="userTotalCount">0</strong>
+                    <small class="text-muted d-block mb-1"
+                      >Tổng người dùng</small
+                    >
+                    <strong class="text-primary fs-4" id="userTotalCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
                     <small class="text-muted d-block mb-1">User thường</small>
-                    <strong class="text-success fs-4" id="normalUserCount">0</strong>
+                    <strong class="text-success fs-4" id="normalUserCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
                     <small class="text-muted d-block mb-1">User Premium</small>
-                    <strong class="text-warning fs-4" id="premiumUserCount">0</strong>
+                    <strong class="text-warning fs-4" id="premiumUserCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
-                    <small class="text-muted d-block mb-1">Tài khoản bị khóa</small>
-                    <strong class="text-danger fs-4" id="bannedUserCount">0</strong>
+                    <small class="text-muted d-block mb-1"
+                      >Tài khoản bị khóa</small
+                    >
+                    <strong class="text-danger fs-4" id="bannedUserCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
               </div>
@@ -704,6 +603,16 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+              
+              <!-- Pagination Container -->
+              <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <div class="text-muted small" id="usersPaginationInfo">Hiển thị 0-0 trên 0 người dùng</div>
+                <nav aria-label="Users Page Navigation">
+                  <ul class="pagination pagination-sm mb-0" id="usersPagination">
+                    <!-- Rendered dynamically -->
+                  </ul>
+                </nav>
               </div>
             </div>
           </section>
@@ -751,26 +660,40 @@
               <div class="row g-3 mb-4">
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
-                    <small class="text-muted d-block mb-1">Tổng số giao dịch</small>
-                    <strong class="text-primary fs-4" id="transactionTotalCount">0</strong>
+                    <small class="text-muted d-block mb-1"
+                      >Tổng số giao dịch</small
+                    >
+                    <strong class="text-primary fs-4" id="transactionTotalCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
                     <small class="text-muted d-block mb-1">Tổng thu</small>
-                    <strong class="text-success fs-4" id="transactionTotalIncome">0 ₫</strong>
+                    <strong
+                      class="text-success fs-4"
+                      id="transactionTotalIncome"
+                      >0 ₫</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
                     <small class="text-muted d-block mb-1">Tổng chi</small>
-                    <strong class="text-danger fs-4" id="transactionTotalExpense">0 ₫</strong>
+                    <strong
+                      class="text-danger fs-4"
+                      id="transactionTotalExpense"
+                      >0 ₫</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
                     <small class="text-muted d-block mb-1">AI phân loại</small>
-                    <strong class="text-warning fs-4" id="transactionAiCount">0</strong>
+                    <strong class="text-warning fs-4" id="transactionAiCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
               </div>
@@ -824,19 +747,25 @@
                     <small class="text-muted d-block"
                       >Premium đang hoạt động</small
                     >
-                    <strong class="text-primary fs-4" id="premiumActiveCount">0</strong>
+                    <strong class="text-primary fs-4" id="premiumActiveCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="result-item-card h-100">
                     <small class="text-muted d-block">Sắp hết hạn</small>
-                    <strong class="text-warning fs-4" id="premiumExpiringCount">0</strong>
+                    <strong class="text-warning fs-4" id="premiumExpiringCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="result-item-card h-100">
                     <small class="text-muted d-block">Đã hủy / hết hạn</small>
-                    <strong class="text-danger fs-4" id="premiumExpiredCount">0</strong>
+                    <strong class="text-danger fs-4" id="premiumExpiredCount"
+                      >0</strong
+                    >
                   </div>
                 </div>
               </div>
@@ -905,26 +834,49 @@
               <div class="row g-3 mb-4">
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
-                    <small class="text-muted d-block mb-1">Tổng doanh thu</small>
+                    <small class="text-muted d-block mb-1"
+                      >Tổng doanh thu</small
+                    >
                     <h5 class="fw-bold mb-0" id="paymentRevenueTotal">0 ₫</h5>
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
-                    <small class="text-muted d-block mb-1">Payment SUCCESS</small>
-                    <h5 class="fw-bold mb-0 text-success" id="paymentSuccessCount">0</h5>
+                    <small class="text-muted d-block mb-1"
+                      >Payment SUCCESS</small
+                    >
+                    <h5
+                      class="fw-bold mb-0 text-success"
+                      id="paymentSuccessCount"
+                    >
+                      0
+                    </h5>
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
-                    <small class="text-muted d-block mb-1">Payment PENDING</small>
-                    <h5 class="fw-bold mb-0 text-warning" id="paymentPendingCount">0</h5>
+                    <small class="text-muted d-block mb-1"
+                      >Payment PENDING</small
+                    >
+                    <h5
+                      class="fw-bold mb-0 text-warning"
+                      id="paymentPendingCount"
+                    >
+                      0
+                    </h5>
                   </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                   <div class="result-item-card h-100">
-                    <small class="text-muted d-block mb-1">Payment FAILED</small>
-                    <h5 class="fw-bold mb-0 text-danger" id="paymentFailedCount">0</h5>
+                    <small class="text-muted d-block mb-1"
+                      >Payment FAILED</small
+                    >
+                    <h5
+                      class="fw-bold mb-0 text-danger"
+                      id="paymentFailedCount"
+                    >
+                      0
+                    </h5>
                   </div>
                 </div>
               </div>
@@ -940,10 +892,7 @@
                   />
                 </div>
                 <div class="col-md-6 col-xl-3">
-                  <select
-                    class="form-select"
-                    id="filterPaymentStatus"
-                  >
+                  <select class="form-select" id="filterPaymentStatus">
                     <option value="ALL">Tất cả trạng thái</option>
                     <option value="SUCCESS">SUCCESS</option>
                     <option value="PENDING">PENDING</option>
@@ -958,11 +907,7 @@
                   />
                 </div>
                 <div class="col-md-6 col-xl-3">
-                  <input
-                    type="date"
-                    class="form-control"
-                    id="paymentToDate"
-                  />
+                  <input type="date" class="form-control" id="paymentToDate" />
                 </div>
               </div>
               <div class="table-responsive">
@@ -1003,7 +948,9 @@
                     Quản lý các danh mục thu/chi dùng để phân loại giao dịch.
                   </p>
                 </div>
-                <div class="d-flex flex-column flex-md-row flex-wrap gap-2 category-toolbar">
+                <div
+                  class="d-flex flex-column flex-md-row flex-wrap gap-2 category-toolbar"
+                >
                   <input
                     type="text"
                     class="form-control table-search-input"
@@ -1059,12 +1006,19 @@
             </div>
           </section>
 
-          <div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+          <div
+            class="modal fade"
+            id="categoryModal"
+            tabindex="-1"
+            aria-hidden="true"
+          >
             <div class="modal-dialog modal-dialog-centered">
               <div class="modal-content">
                 <form id="categoryForm">
                   <div class="modal-header">
-                    <h5 class="modal-title" id="categoryModalTitle">Thêm danh mục</h5>
+                    <h5 class="modal-title" id="categoryModalTitle">
+                      Thêm danh mục
+                    </h5>
                     <button
                       type="button"
                       class="btn-close"
@@ -1075,7 +1029,11 @@
                   <div class="modal-body">
                     <input type="hidden" id="categoryIdInput" />
                     <div class="mb-3">
-                      <label class="form-label fw-semibold" for="categoryNameInput">Tên danh mục</label>
+                      <label
+                        class="form-label fw-semibold"
+                        for="categoryNameInput"
+                        >Tên danh mục</label
+                      >
                       <input
                         type="text"
                         class="form-control"
@@ -1085,14 +1043,26 @@
                       />
                     </div>
                     <div class="mb-3">
-                      <label class="form-label fw-semibold" for="categoryTypeInput">Loại danh mục</label>
-                      <select class="form-select" id="categoryTypeInput" required>
+                      <label
+                        class="form-label fw-semibold"
+                        for="categoryTypeInput"
+                        >Loại danh mục</label
+                      >
+                      <select
+                        class="form-select"
+                        id="categoryTypeInput"
+                        required
+                      >
                         <option value="THU">Thu</option>
                         <option value="CHI">Chi</option>
                       </select>
                     </div>
                     <div class="mb-3">
-                      <label class="form-label fw-semibold" for="categoryKeywordAiInput">Keyword AI</label>
+                      <label
+                        class="form-label fw-semibold"
+                        for="categoryKeywordAiInput"
+                        >Keyword AI</label
+                      >
                       <textarea
                         class="form-control"
                         id="categoryKeywordAiInput"
@@ -1109,7 +1079,11 @@
                     >
                       Hủy
                     </button>
-                    <button type="submit" class="btn btn-primary-gradient" id="btnSaveCategory">
+                    <button
+                      type="submit"
+                      class="btn btn-primary-gradient"
+                      id="btnSaveCategory"
+                    >
                       <i class="bi bi-check2 me-1"></i>Lưu
                     </button>
                   </div>
@@ -1120,156 +1094,222 @@
 
           <!-- 5. AI MODEL PANEL -->
           <section class="tab-pane d-none" id="tab-ai">
-            <div class="row g-4">
-              <div class="col-lg-6">
-                <div class="chart-card card-glow h-100">
-                  <h4 class="chart-title mb-3">Thông số AI Model hiện tại</h4>
-                  <div class="ai-metrics-container my-4 text-center">
-                    <div class="radial-progress-wrapper mx-auto">
-                      <svg viewBox="0 0 100 100" class="radial-progress">
-                        <circle
-                          class="radial-progress-bg"
-                          cx="50"
-                          cy="50"
-                          r="40"
-                        ></circle>
-                        <circle
-                          class="radial-progress-bar"
-                          id="aiAccuracyCircle"
-                          stroke-dashoffset="22.7"
-                          cx="50"
-                          cy="50"
-                          r="40"
-                        ></circle>
-                      </svg>
-                      <div class="radial-progress-text">
-                        <span class="value" id="aiAccuracyText">94.5%</span>
-                        <span class="label">Độ chính xác</span>
-                      </div>
+            <!-- HÀNG 1 - AI OVERVIEW (4 Card ngang) -->
+            <div class="row g-4 mb-4">
+              <!-- Card 1: AI Engine -->
+              <div class="col-xl-3 col-md-6">
+                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
+                  <div>
+                    <span class="text-muted small d-block mb-1">🤖 AI Engine</span>
+                    <h4 class="mb-0 fw-bold fs-6 text-truncate" id="aiEngineText" style="max-width: 170px;">Đang tải...</h4>
+                  </div>
+                  <div class="icon-shape bg-primary-soft rounded-circle p-3 text-primary fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-cpu"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Card 2: Accuracy -->
+              <div class="col-xl-3 col-md-6">
+                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
+                  <div>
+                    <span class="text-muted small d-block mb-1">🎯 Accuracy</span>
+                    <div class="d-flex align-items-baseline gap-2">
+                      <h4 class="mb-0 fw-bold fs-4" id="aiAccuracyOverviewText">0.0%</h4>
+                      <span class="text-success small fw-medium" id="aiAccuracyTrendText" style="font-size: 0.75rem;">+2.3% tháng này</span>
                     </div>
                   </div>
-                  <ul class="list-group list-group-flush custom-list-group">
-                    <li
-                      class="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                      <span>Model hoạt động:</span>
-                      <strong class="text-primary" id="aiActiveModel"
-                        >Logistic Regression v2.1</strong
-                      >
-                    </li>
-                    <li
-                      class="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                      <span>Tổng tập dữ liệu huấn luyện:</span>
-                      <strong id="aiTotalTrained">14,200 mẫu</strong>
-                    </li>
-                    <li
-                      class="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                      <span>Ngày huấn luyện cuối:</span>
-                      <strong id="aiLastTrained">01/06/2026</strong>
-                    </li>
-                  </ul>
+                  <div class="icon-shape bg-success-soft rounded-circle p-3 text-success fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-bullseye"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Card 3: Transactions Classified -->
+              <div class="col-xl-3 col-md-6">
+                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
+                  <div>
+                    <span class="text-muted small d-block mb-1">📊 Transactions Classified</span>
+                    <h4 class="mb-0 fw-bold fs-4" id="aiTransactionsClassifiedText">0</h4>
+                  </div>
+                  <div class="icon-shape bg-info-soft rounded-circle p-3 text-info fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-check-circle"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Card 4: AI Requests -->
+              <div class="col-xl-3 col-md-6">
+                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
+                  <div>
+                    <span class="text-muted small d-block mb-1">⚡ AI Requests</span>
+                    <h4 class="mb-0 fw-bold fs-4" id="aiRequestsText">0</h4>
+                  </div>
+                  <div class="icon-shape bg-warning-soft rounded-circle p-3 text-warning fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-lightning-charge"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                  <div class="mt-4">
-                    <button
-                      class="btn btn-primary-gradient w-100 py-3"
-                      id="btnRetrainAI"
-                    >
-                      <i class="bi bi-arrow-repeat me-2"></i>Huấn luyện lại AI
-                      Model
-                    </button>
+            <!-- HÀNG 2 - Performance & Health -->
+            <div class="row g-4 mb-4">
+              <!-- AI Performance Chart (8 cột) -->
+              <div class="col-lg-8">
+                <div class="chart-card card-glow h-100 p-4" style="border-radius: 20px;">
+                  <h5 class="chart-title mb-3">AI Performance Chart</h5>
+                  <p class="text-muted small mb-4">Độ chính xác AI theo thời gian</p>
+                  <div style="height: 250px; position: relative;">
+                    <canvas id="aiPerformanceChart"></canvas>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- AI Health (4 cột) -->
+              <div class="col-lg-4">
+                <div class="chart-card card-glow h-100 p-4" style="border-radius: 20px;">
+                  <h5 class="chart-title mb-3">AI Health</h5>
+                  <div class="d-flex flex-column gap-3 mt-4">
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
+                      <span class="text-muted small">Model Status</span>
+                      <span class="badge bg-success-soft text-success px-2 py-1" id="aiHealthStatus">Online</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
+                      <span class="text-muted small">Training Data</span>
+                      <strong id="aiHealthTrainingData">0 mẫu</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
+                      <span class="text-muted small">Last Training</span>
+                      <strong id="aiHealthLastTraining">21/06/2026</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
+                      <span class="text-muted small">Version</span>
+                      <strong id="aiHealthVersion">v1.0</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                    <!-- Retrain Progress bar (hidden initially) -->
-                    <div
-                      class="retrain-progress-box mt-3 d-none"
-                      id="retrainProgressBox"
-                    >
-                      <div class="d-flex justify-content-between mb-1">
-                        <span class="small" id="retrainStatusText"
-                          >Đang tải tập dữ liệu...</span
-                        >
-                        <span class="small fw-bold" id="retrainPercentText"
-                          >0%</span
-                        >
+            <!-- HÀNG 3 - AI Test Playground -->
+            <div class="row g-4 mb-4">
+              <div class="col-12">
+                <div class="chart-card card-glow p-4" style="border-radius: 20px;">
+                  <h5 class="chart-title mb-3">AI Test Playground</h5>
+                  <p class="text-muted small mb-4">Nhập nội dung giao dịch mẫu để chạy thử mô hình phân loại AI hiện tại.</p>
+                  
+                  <div class="row g-4">
+                    <!-- Input bên trái -->
+                    <div class="col-lg-7">
+                      <div class="mb-3">
+                        <textarea class="form-control" id="aiPlaygroundInput" rows="5" placeholder="Ví dụ:&#10;Ăn phở bò 45k&#10;Đi Grab 25000&#10;Đóng tiền điện 500000" style="resize: none; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 12px; font-size: 0.9rem; padding: 12px;"></textarea>
                       </div>
-                      <div class="progress progress-custom">
-                        <div
-                          class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                          id="retrainProgressBar"
-                          role="progressbar"
-                          style="width: 0%"
-                        ></div>
+                      <button class="btn btn-primary-gradient w-100 py-3 fw-semibold" id="btnPlaygroundAnalyze">
+                        <i class="bi bi-cpu me-2"></i>Phân tích giao dịch
+                      </button>
+                    </div>
+                    
+                    <!-- Kết quả bên phải -->
+                    <div class="col-lg-5">
+                      <div class="h-100 d-flex flex-column justify-content-center p-4 rounded-4" style="background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255, 255, 255, 0.15); min-height: 200px;">
+                        <div id="aiPlaygroundResultEmpty" class="text-center py-4">
+                          <i class="bi bi-clipboard-data text-muted fs-1 mb-2 d-block"></i>
+                          <span class="text-muted small">Nhập thông tin giao dịch và bấm phân tích để xem kết quả.</span>
+                        </div>
+                        <div id="aiPlaygroundResultContent" class="d-none">
+                          <h6 class="fw-bold mb-3 pb-2 border-bottom border-secondary text-primary">Kết quả phân tích:</h6>
+                          <div class="row g-3">
+                            <div class="col-6">
+                              <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
+                                <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Danh mục dự đoán</small>
+                                <strong id="aiPlaygroundCategory" class="text-success fs-6">-</strong>
+                              </div>
+                            </div>
+                            <div class="col-6">
+                              <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
+                                <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Độ tin cậy</small>
+                                <strong id="aiPlaygroundConfidence" class="text-primary fs-6">0%</strong>
+                              </div>
+                            </div>
+                            <div class="col-12">
+                              <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
+                                <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Từ khóa nhận diện</small>
+                                <div id="aiPlaygroundKeywords" class="d-flex flex-wrap gap-1">
+                                  <span class="text-muted small">-</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div class="col-lg-6">
-                <div class="chart-card card-glow h-100">
-                  <h4 class="chart-title mb-3">
-                    Mô phỏng Kiểm thử AI Phân loại
-                  </h4>
-                  <p class="text-muted small">
-                    Nhập một nội dung giao dịch bất kỳ để kiểm tra mức độ nhận
-                    diện danh mục của mô hình AI hiện tại.
-                  </p>
-
-                  <div class="mb-3">
-                    <label class="form-label fw-semibold"
-                      >Nội dung giao dịch mẫu</label
-                    >
-                    <div class="input-group">
-                      <input
-                        type="text"
-                        class="form-control py-2"
-                        id="aiTestInput"
-                        placeholder="Ví dụ: Ăn phở bò sáng 45k hoặc đi grap 25000"
-                      />
-                      <button class="btn btn-secondary-glow" id="btnTestAI">
-                        Phân loại ngay
-                      </button>
-                    </div>
+            <!-- HÀNG 4 - Dataset Statistics & Top Keywords -->
+            <div class="row g-4 mb-4">
+              <!-- Dataset Statistics (8 cột) -->
+              <div class="col-lg-8">
+                <div class="chart-card card-glow p-4" style="border-radius: 20px;">
+                  <h5 class="chart-title mb-3">Dataset Statistics</h5>
+                  <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                    <table class="table custom-table mb-0">
+                      <thead>
+                        <tr>
+                          <th>Loại danh mục</th>
+                          <th>Số mẫu huấn luyện</th>
+                        </tr>
+                      </thead>
+                      <tbody id="aiDatasetStatsTable">
+                        <tr>
+                          <td colspan="2" class="text-center text-muted py-3">Đang tải dữ liệu thống kê...</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
+                </div>
+              </div>
+              
+              <!-- Top Keywords (4 cột) -->
+              <div class="col-lg-4">
+                <div class="chart-card card-glow p-4 h-100" style="border-radius: 20px;">
+                  <h5 class="chart-title mb-3">Top Keywords</h5>
+                  <p class="text-muted small mb-3">Các từ khóa nhận diện phổ biến nhất</p>
+                  <div id="aiTopKeywordsContainer" class="d-flex flex-wrap gap-2 pt-2">
+                    <span class="text-muted small">Đang tải...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                  <div class="ai-test-result-box d-none" id="aiTestResultBox">
-                    <h5 class="mb-3 border-bottom pb-2">
-                      Kết quả phân tích AI:
-                    </h5>
-                    <div class="row g-3">
-                      <div class="col-6">
-                        <div class="result-item-card">
-                          <small class="text-muted d-block"
-                            >Danh mục dự đoán</small
-                          >
-                          <strong
-                            id="aiResultCategory"
-                            class="text-success fs-5"
-                            >-</strong
-                          >
-                        </div>
-                      </div>
-                      <div class="col-6">
-                        <div class="result-item-card">
-                          <small class="text-muted d-block">Độ tin cậy</small>
-                          <strong
-                            id="aiResultConfidence"
-                            class="text-primary fs-5"
-                            >0%</strong
-                          >
-                        </div>
-                      </div>
-                      <div class="col-12">
-                        <div class="result-item-card">
-                          <small class="text-muted d-block"
-                            >Loại giao dịch</small
-                          >
-                          <span class="badge bg-danger" id="aiResultType"
-                            >CHI</span
-                          >
-                        </div>
-                      </div>
+            <!-- HÀNG 5 - Training Management -->
+            <div class="row g-4">
+              <div class="col-12">
+                <div class="chart-card card-glow p-4" style="border-radius: 20px;">
+                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                      <h5 class="chart-title mb-2">Training Management</h5>
+                      <p class="text-muted small mb-0">
+                        Huấn luyện lại mô hình phân loại chi tiêu dựa trên dữ liệu thực tế hiện có. 
+                        Lần huấn luyện cuối: <strong id="aiLastTrainMeta">21/06/2026</strong>. 
+                        Tổng số mẫu: <strong id="aiLastTrainSamples">0 mẫu</strong>.
+                      </p>
+                    </div>
+                    <button class="btn btn-primary-gradient px-4 py-3 fw-semibold text-nowrap" id="btnPlaygroundRetrain" style="border-radius: 12px;">
+                      <i class="bi bi-arrow-repeat me-2"></i>Huấn luyện lại Model
+                    </button>
+                  </div>
+                  
+                  <!-- Retrain Progress bar -->
+                  <div class="retrain-progress-box mt-4 d-none" id="playgroundRetrainProgressBox">
+                    <div class="d-flex justify-content-between mb-1">
+                      <span class="small text-muted" id="playgroundRetrainStatusText">Đang chuẩn bị tập dữ liệu huấn luyện...</span>
+                      <span class="small fw-bold text-primary" id="playgroundRetrainPercentText">0%</span>
+                    </div>
+                    <div class="progress progress-custom" style="height: 6px;">
+                      <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary-gradient" id="playgroundRetrainProgressBar" role="progressbar" style="width: 0%;"></div>
                     </div>
                   </div>
                 </div>
@@ -1780,7 +1820,12 @@
         </div>
       </main>
     </div>
-    <div class="modal fade" id="commonDetailModal" tabindex="-1" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="commonDetailModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -1794,7 +1839,11 @@
           </div>
           <div class="modal-body" id="commonDetailModalBody"></div>
           <div class="modal-footer" id="commonDetailModalFooter">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+            >
               Đóng
             </button>
           </div>
