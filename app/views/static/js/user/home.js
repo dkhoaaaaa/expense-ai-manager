@@ -496,6 +496,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Chờ animation fade-out chạy xong (150ms) rồi inject HTML và load data
     setTimeout(async () => {
+      // TODO: Module Budgets & Categories sẽ được Member phụ trách Budget phát triển
+      if (tabId === "transactions") {
+      container.innerHTML = pageTemplates.transactions;
+      container.classList.remove("fade-out");
+      container.classList.add("fade-in");
+      loadTransactions();
+      return;
+      }
       // Tab Ngân sách: render trực tiếp từ client template
       if (tabId === "budgets") {
         container.innerHTML = pageTemplates.budgets;
@@ -507,14 +515,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // TODO: Module Budgets & Categories sẽ được Member phụ trách Budget phát triển
-      if (tabId === "transactions") {
-      container.innerHTML = pageTemplates.transactions;
-      container.classList.remove("fade-out");
-      container.classList.add("fade-in");
-      loadTransactions();
-      return;
-      }
       // 1. Nếu là tab overview, render trực tiếp từ client template
       if (tabId === "overview") {
         container.innerHTML = pageTemplates.overview;
@@ -1137,6 +1137,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
   // --- 6. TAB 3: NGÂN SÁCH & DANH MỤC ---
   async function loadBudgetsTab() {
     const container = document.getElementById("budget-detailed-list");
