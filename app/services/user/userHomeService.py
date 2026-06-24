@@ -56,7 +56,7 @@ class UserHomeService:
             # 1. Lấy thông tin user
             userResult = db.session.execute(
                 text("""
-                    SELECT nd.ho_ten, tk.email, tk.vai_tro 
+                    SELECT nd.ho_ten, tk.email, tk.vai_tro, nd.is_premium 
                     FROM tai_khoan tk
                     LEFT JOIN nguoi_dung nd ON tk.id = nd.tai_khoan_id
                     WHERE tk.id = :userId
@@ -68,7 +68,8 @@ class UserHomeService:
                 data["user"] = {
                     "hoTen": userResult[0] or "Người dùng",
                     "email": userResult[1] or "",
-                    "vaiTro": userResult[2] or "USER"
+                    "vaiTro": userResult[2] or "USER",
+                    "isPremium": bool(userResult[3])
                 }
 
             # 2. Tính số dư hiện tại (Tổng thu - Tổng chi từ trước tới nay)

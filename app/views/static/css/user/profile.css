@@ -62,6 +62,18 @@ body {
     transform: scale(1.05);
 }
 
+.avatar-fallback {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    user-select: none;
+    text-transform: uppercase;
+}
+
 .btn-success {
     background-color: #10b981;
     border-color: #10b981;

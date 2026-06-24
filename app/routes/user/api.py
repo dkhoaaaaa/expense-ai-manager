@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.helpers import allowed_file
+import google.generativeai as genai
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -161,9 +162,13 @@ def api_activate_premium():
     
     # Tạo lại access token mới có chứa role = 'PREMIUM' và set cookie
     jwt_data = get_jwt()
+    current_avatar = jwt_data.get('user_avatar') if jwt_data else None
+    if not current_avatar:
+        current_avatar = user.anh_dai_dien or f"https://ui-avatars.com/api/?name={user.ho_ten.replace(' ', '+')}&background=10b981&color=fff"
+
     access_token = create_access_token(identity=str(user_id), additional_claims={
         "user_name": user.ho_ten, 
-        "user_avatar": user.anh_dai_dien,
+        "user_avatar": current_avatar,
         "role": 'PREMIUM'
     })
     
@@ -173,3 +178,47 @@ def api_activate_premium():
     })
     set_access_cookies(response, access_token)
     return response, 200
+
+@api_bp.route('/ai/chat', methods=['POST'])
+@jwt_required()
+def api_chat():
+    user_id = get_jwt_identity()
+    data = request.json or {}
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({"success": False, "error": "Vui lòng cung cấp nội dung chat"}), 400
+        
+    try:
+        # 1. Xác thực và kiểm tra trạng thái Premium trong database
+        from app.models.taiKhoanModel import TaiKhoan
+        account = TaiKhoan.query.get(user_id)
+        if not account:
+            return jsonify({"success": False, "error": "Người dùng không tồn tại"}), 404
+            
+        # Kiểm tra và tự động cập nhật thời hạn Premium
+        from app.helpers import check_premium_status
+        check_premium_status(account)
+        
+        # Chặn nếu không phải Premium hoặc Admin
+        if account.vai_tro not in ['PREMIUM', 'ADMIN']:
+            return jsonify({
+                "success": False, 
+                "error": "Tính năng Chatbot AI chỉ dành riêng cho tài khoản Premium."
+            }), 403
+            
+        # 2. Gọi AI Service để sinh câu trả lời
+        from app.services.ai.ai_service import AIService
+        reply = AIService.generate_response(user_id, message)
+        
+        return jsonify({
+            "success": True,
+            "reply": reply
+        }), 200
+        
+    except ValueError as ve:
+        # Bắt lỗi cấu hình (thiếu API Key)
+        return jsonify({"success": False, "error": str(ve)}), 400
+    except Exception as e:
+        # Bắt các lỗi kết nối hoặc lỗi bất ngờ khác
+        return jsonify({"success": False, "error": f"Lỗi chatbot: {str(e)}"}), 500

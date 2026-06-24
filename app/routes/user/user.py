@@ -26,7 +26,7 @@ def profile():
 @user_bp.route('/ai-assistant')
 @jwt_required()
 def ai_assistant():
-    return render_template("user/index.html")
+    return render_template("user/ai.html")
 
 @user_bp.route('/api/analytics/forecast', methods=['GET'])
 @jwt_required()

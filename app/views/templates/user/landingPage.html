@@ -26,6 +26,17 @@
             transition: color 0.2s;
         }
         .profile-link:hover { color: #10b981 !important; }
+        .avatar-fallback {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            user-select: none;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -72,7 +83,14 @@
                     <!-- Kiểm tra nếu đã đăng nhập -->
                     {% if jwt_user %}
                         <a href="{{ url_for('user.profile') }}" class="text-decoration-none text-dark d-flex align-items-center gap-2 fw-semibold profile-link">
-                            <img src="{{ jwt_user.avatar }}" alt="Avatar" class="rounded-circle shadow-sm" width="36" height="36">
+                            {% set has_avatar = jwt_user and jwt_user.avatar and jwt_user.avatar != 'None' and jwt_user.avatar != 'null' and jwt_user.avatar != '' %}
+                            {% if has_avatar %}
+                                <img src="{{ jwt_user.avatar }}" alt="Avatar" class="rounded-circle shadow-sm" width="36" height="36" style="object-fit: cover;">
+                            {% else %}
+                                <div class="avatar-fallback rounded-circle shadow-sm" style="width: 36px; height: 36px; font-size: 16px;">
+                                    {{ jwt_user.name[0].upper() if jwt_user and jwt_user.name else 'U' }}
+                                </div>
+                            {% endif %}
                             <span>{{ jwt_user.name }}</span>
                         </a>
                         <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm px-3 py-1 fw-bold rounded-pill">Đăng xuất</a>
