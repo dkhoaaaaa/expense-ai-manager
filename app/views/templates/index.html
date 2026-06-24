@@ -3,168 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Expense Manager</title>
+    <title>AI Tài Chính - Quản Lý Chi Tiêu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f4f7f6; }
-        .ai-card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .ai-card { border-radius: 16px; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+        .info-card { border-radius: 12px; background-color: #ffffff; }
         .suggestion-chip { cursor: pointer; transition: 0.2s; }
-        .suggestion-chip:hover { transform: translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .suggestion-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         #loadingSpinner { display: none; }
         #resultContainer { display: none; }
+        /* Tùy chỉnh danh sách gợi ý */
+        .insight-list { padding-left: 1.2rem; margin-bottom: 0; }
+        .insight-list li { padding-bottom: 4px; }
     </style>
 </head>
 <body>
 
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-6 col-lg-5">
             
             <div class="text-center mb-4">
-                <h2 class="fw-bold text-primary"><i class="bi bi-robot"></i> Trợ lý Nhập liệu AI</h2>
-                <p class="text-muted">Nhập chi tiêu bằng ngôn ngữ tự nhiên</p>
+                <h2 class="fw-bolder text-primary letter-spacing-1"><i class="bi bi-robot"></i> AI TÀI CHÍNH</h2>
+                <p class="text-muted">Trợ lý quản lý chi tiêu thông minh</p>
             </div>
 
             <div class="card ai-card p-4 mb-4">
                 <form id="expenseForm">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Mô tả giao dịch</label>
-                        <input type="text" class="form-control form-control-lg" id="description" 
-                               placeholder="VD: ăn cơm tấm sườn bì chả 35k" required autocomplete="off">
+                        <input type="text" class="form-control form-control-lg bg-light border-0" id="description" 
+                               placeholder="VD: ăn cơm tấm sườn bì 35k" required autocomplete="off">
                     </div>
                     
                     <div class="mb-4">
-                        <label class="form-label fw-bold">Loại tài khoản mô phỏng</label>
-                        <select class="form-select" id="userType">
-                            <option value="PREMIUM" selected>⭐ PREMIUM (Machine Learning)</option>
-                            <option value="USER">👤 USER Cơ bản (Rule-based)</option>
+                        <label class="form-label fw-bold text-muted small">CẤU HÌNH AI</label>
+                        <select class="form-select border-0 bg-light" id="userType">
+                            <option value="PREMIUM" selected>⭐ Tài khoản PREMIUM (Machine Learning)</option>
+                            <option value="USER">👤 Tài khoản Cơ bản (Rule-based)</option>
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100">
-                        <i class="bi bi-magic"></i> Phân tích giao dịch
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm">
+                        Phân tích giao dịch <i class="bi bi-arrow-right-short"></i>
                     </button>
                 </form>
             </div>
 
-            <div id="loadingSpinner" class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
+            <div id="loadingSpinner" class="text-center my-5">
+                <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;">
                     <span class="visually-hidden">Đang xử lý...</span>
                 </div>
-                <p class="mt-2 text-muted">AI đang phân tích...</p>
+                <p class="mt-3 text-muted fw-bold">AI đang phân tích dữ liệu...</p>
             </div>
 
             <div id="resultContainer">
-                <div class="card ai-card p-4">
-                    <h5 class="fw-bold border-bottom pb-2 mb-3">Kết quả Phân loại</h5>
+                
+                <div class="card ai-card p-4 mb-3">
+                    <h6 class="fw-bold text-uppercase text-muted mb-3 fs-7">Kết quả Phân loại</h6>
                     
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <small class="text-muted">Số tiền trích xuất</small>
-                            <h4 class="fw-bold text-danger" id="resAmount">0 đ</h4>
+                    <div class="row mb-3 text-center">
+                        <div class="col-6 border-end">
+                            <small class="text-muted d-block mb-1">Số tiền</small>
+                            <h4 class="fw-bold text-danger mb-0" id="resAmount">0 đ</h4>
                         </div>
                         <div class="col-6">
-                            <small class="text-muted">Danh mục dự đoán</small>
-                            <h4 class="fw-bold text-success" id="resCategory">-</h4>
+                            <small class="text-muted d-block mb-1">Danh mục</small>
+                            <h4 class="fw-bold text-success mb-0" id="resCategory">-</h4>
                         </div>
                     </div>
 
-                    <div class="card p-3 shadow-sm w-100 mb-3 bg-light border-0">
+                    <div class="info-card p-3 shadow-sm border w-100 mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="text-muted mb-0">Độ tự tin của AI</h6>
-                            <small id="methodText" class="badge bg-secondary"></small>
+                            <small class="text-muted fw-bold">Độ tự tin của AI</small>
+                            <small id="methodText" class="badge bg-light text-dark border"></small>
                         </div>
                         
-                        <div class="progress" style="height: 20px;">
+                        <div class="progress rounded-pill" style="height: 12px;">
                             <div id="aiConfidenceBar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                                 role="progressbar" style="width: 0%;">0%</div>
+                                 role="progressbar" style="width: 0%;"></div>
                         </div>
-                        
                         <small id="aiConfidenceText" class="mt-2 text-center d-block fw-bold"></small>
                     </div>
-                    <div id="reviewSection" class="alert alert-warning mt-2" style="display: none;">
-                        <i class="bi bi-exclamation-triangle-fill"></i> <strong>AI không chắc chắn lắm!</strong><br>
-                        Có phải bạn muốn chọn một trong các danh mục dưới đây không?
+
+                    <div id="reviewSection" class="alert alert-warning border-0 shadow-sm mt-1 mb-0" style="display: none; border-radius: 12px;">
+                        <i class="bi bi-exclamation-triangle-fill text-warning"></i> <strong>AI phân vân!</strong><br>
+                        <small>Bạn định chọn danh mục nào dưới đây?</small>
                         <div id="suggestionTags" class="mt-2"></div>
                     </div>
-
-                    <button class="btn btn-success w-100 mt-2" onclick="saveTransaction()">
-                        <i class="bi bi-check-circle"></i> Xác nhận & Lưu
-                    </button>
                 </div>
-            </div>
 
-        </div>
+                <div class="card ai-card p-4 mb-3">
+                    <h6 class="fw-bold text-uppercase text-muted mb-2 fs-7">Dự đoán tháng tới</h6>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="bi bi-graph-up-arrow text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bolder text-dark mb-0" id="resForecast">0 đ</h3>
+                            <small class="text-muted" id="resForecastTrend">Dựa trên xu hướng chi tiêu hiện tại</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card ai-card p-4 mb-4">
+                    <h6 class="fw-bold text-uppercase text-muted mb-3 fs-7">Gợi ý hành động</h6>
+                    <div class="info-card p-3 bg-warning bg-opacity-10 border-warning border border-opacity-25">
+                        <ul class="insight-list text-dark fw-medium" id="resInsights">
+                            </ul>
+                    </div>
+                </div>
+
+                <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow" onclick="saveTransaction()">
+                    <i class="bi bi-check-circle-fill me-1"></i> Lưu giao dịch này
+                </button>
+                
+            </div> </div>
     </div>
 </div>
 
 <script>
     document.getElementById('expenseForm').addEventListener('submit', async function(e) {
-        e.preventDefault(); // Chặn tải lại trang
+        e.preventDefault();
         
-        // 1. Lấy dữ liệu từ form
         const description = document.getElementById('description').value;
         const userType = document.getElementById('userType').value;
         
-        // 2. Hiển thị Loading, Ẩn Kết quả
         document.getElementById('loadingSpinner').style.display = 'block';
         document.getElementById('resultContainer').style.display = 'none';
 
         try {
-            // 3. Gọi API Backend (Đảm bảo Flask server đang chạy ở port 5000)
+            // Gọi API Phân loại (Đảm bảo Flask server đang chạy ở port 5000)
             const response = await fetch('http://127.0.0.1:5000/api/transactions/classify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    description: description,
-                    user_type: userType
-                })
+                body: JSON.stringify({ description: description, user_type: userType })
             });
 
             const result = await response.json();
 
-            // 4. Xử lý UI nếu API trả về success
             if (result.status === 'success') {
                 const data = result.data;
                 
-                // Format số tiền
+                // 1. Render Kết quả phân loại
                 document.getElementById('resAmount').innerText = data.amount.toLocaleString('vi-VN') + ' đ';
                 document.getElementById('resCategory').innerText = data.category;
+                document.getElementById('methodText').innerText = data.classification_method;
                 
-                // Cập nhật thanh tiến trình (Confidence)
-                const confBar = document.getElementById('confidenceBar');
+                // Cập nhật thanh Confidence (Đã sửa ID chuẩn với HTML)
+                const confBar = document.getElementById('aiConfidenceBar');
+                const confText = document.getElementById('aiConfidenceText');
+                
                 confBar.style.width = data.confidence_score + '%';
                 
-                // Đổi màu thanh tùy theo độ tự tin
-                if (data.confidence_score >= 80) confBar.className = 'progress-bar bg-success';
-                else if (data.confidence_score >= 50) confBar.className = 'progress-bar bg-warning';
-                else confBar.className = 'progress-bar bg-danger';
+                // Xóa màu cũ
+                confBar.classList.remove('bg-success', 'bg-warning', 'bg-danger', 'text-dark');
                 
-                document.getElementById('confidenceText').innerText = data.confidence_score + '%';
-                document.getElementById('methodText').innerText = data.classification_method;
+                if (data.confidence_score >= 80) {
+                    confBar.classList.add('bg-success');
+                    confText.innerText = data.confidence_score.toFixed(1) + '% - Hoàn toàn tự tin';
+                    confText.className = "mt-2 text-center d-block text-success fw-bold";
+                } else if (data.confidence_score >= 50) {
+                    confBar.classList.add('bg-warning', 'text-dark');
+                    confText.innerText = data.confidence_score.toFixed(1) + '% - Tự tin trung bình';
+                    confText.className = "mt-2 text-center d-block text-warning fw-bold";
+                } else {
+                    confBar.classList.add('bg-danger');
+                    confText.innerText = data.confidence_score.toFixed(1) + '% - Độ tự tin thấp';
+                    confText.className = "mt-2 text-center d-block text-danger fw-bold";
+                }
 
-                // XỬ LÝ KỊCH BẢN "NEEDS REVIEW"
+                // Xử lý "Needs Review"
                 const reviewSection = document.getElementById('reviewSection');
                 const suggestionTags = document.getElementById('suggestionTags');
-                suggestionTags.innerHTML = ''; // Xóa gợi ý cũ
+                suggestionTags.innerHTML = ''; 
 
                 if (data.needs_user_review && data.top_predictions) {
                     reviewSection.style.display = 'block';
                     
-                    // Lặp qua top dự đoán và tạo các nút gợi ý
                     for (const [cat, prob] of Object.entries(data.top_predictions)) {
                         const btn = document.createElement('span');
-                        btn.className = 'badge bg-outline-primary border text-dark p-2 me-2 suggestion-chip';
+                        btn.className = 'badge bg-white border border-secondary text-dark p-2 me-2 mb-2 suggestion-chip';
                         btn.innerHTML = `${cat} <small class="text-muted">(${prob}%)</small>`;
                         
-                        // Khi click vào gợi ý, sửa lại danh mục dự đoán
                         btn.onclick = function() {
                             document.getElementById('resCategory').innerText = cat;
-                            document.getElementById('confidenceBar').style.width = '100%';
-                            document.getElementById('confidenceBar').className = 'progress-bar bg-success';
-                            document.getElementById('confidenceText').innerText = '100% (User Verified)';
-                            reviewSection.style.display = 'none'; // Ẩn cảnh báo
+                            confBar.style.width = '100%';
+                            confBar.className = 'progress-bar progress-bar-striped progress-bar-animated bg-success';
+                            confText.innerText = '100% (Đã xác nhận thủ công)';
+                            confText.className = 'mt-2 text-center d-block text-success fw-bold';
+                            reviewSection.style.display = 'none';
                         };
                         suggestionTags.appendChild(btn);
                     }
@@ -172,7 +202,11 @@
                     reviewSection.style.display = 'none';
                 }
 
-                // Hiển thị kết quả, tắt Loading
+                // 2. Render Giao diện Dự báo & Gợi ý (Giả lập Call API Analytics)
+                // Trong thực tế, bạn sẽ gọi thêm 1 API fetch() tới /api/analytics/forecast ở đây
+                simulateAnalyticsData(data.category, data.amount);
+
+                // Hiển thị toàn bộ block kết quả
                 document.getElementById('loadingSpinner').style.display = 'none';
                 document.getElementById('resultContainer').style.display = 'block';
             } else {
@@ -182,16 +216,51 @@
 
         } catch (error) {
             console.error('Error:', error);
-            alert('Không thể kết nối đến máy chủ Backend. Đảm bảo Flask đang chạy!');
+            alert('Không thể kết nối đến máy chủ Backend. Đảm bảo Flask đang chạy tại port 5000!');
             document.getElementById('loadingSpinner').style.display = 'none';
         }
     });
 
+    // Hàm giả lập dữ liệu Dự báo và Gợi ý cho giao diện
+    function simulateAnalyticsData(category, amount) {
+        // Giả lập số tiền dự báo tháng tới (Ví dụ: 5.800.000đ)
+        const baseForecast = 5800000; 
+        const newForecast = baseForecast + amount; // Cộng thêm khoản vừa nhập để thấy UI thay đổi
+        
+        document.getElementById('resForecast').innerText = newForecast.toLocaleString('vi-VN') + ' đ';
+        
+        if (amount > 500000) {
+            document.getElementById('resForecastTrend').innerHTML = '<span class="text-danger"><i class="bi bi-arrow-up-right"></i> Đang có xu hướng tăng nhanh</span>';
+        } else {
+            document.getElementById('resForecastTrend').innerHTML = '<span class="text-success"><i class="bi bi-arrow-down-right"></i> Vẫn nằm trong tầm kiểm soát</span>';
+        }
+
+        // Tạo gợi ý (Insights) dựa trên danh mục vừa phân loại
+        const insightsList = document.getElementById('resInsights');
+        insightsList.innerHTML = ''; // Clear cũ
+        
+        let insights = [];
+        if (category === 'Ăn uống') {
+            insights.push('Giảm chi ăn uống bên ngoài trong tuần tới.');
+        } else if (category === 'Mua sắm') {
+            insights.push('Khoản mua sắm này làm bạn gần chạm ngưỡng budget.');
+            insights.push('Nên cân nhắc kỹ trước khi mua các món không thiết yếu.');
+        }
+        insights.push('Cẩn thận vượt budget tổng của tháng này.');
+
+        insights.forEach(text => {
+            let li = document.createElement('li');
+            li.innerText = text;
+            insightsList.appendChild(li);
+        });
+    }
+
     function saveTransaction() {
         const cat = document.getElementById('resCategory').innerText;
         const amt = document.getElementById('resAmount').innerText;
-        alert(`Đã lưu giao dịch: ${amt} vào danh mục [${cat}] thành công! (Giả lập đẩy vào Database)`);
-        // Reset form
+        alert(`🎉 Đã lưu thành công ${amt} vào danh mục [${cat}]!`);
+        
+        // Reset lại form và ẩn UI
         document.getElementById('expenseForm').reset();
         document.getElementById('resultContainer').style.display = 'none';
     }
