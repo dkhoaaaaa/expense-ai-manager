@@ -19,7 +19,7 @@ def classify_transaction():
     """
     API Endpoint: /api/transactions/classify
     Method: POST
-    JSON Body: {"description": "mua bó rau 35k", "user_type": "PREMIUM"}
+    JSON Body: {"description": "mua bó rau 35k"}
     """
     try:
         data = request.get_json()
@@ -28,54 +28,73 @@ def classify_transaction():
             return jsonify({"status": "error", "message": "Thiếu trường 'description' trong request"}), 400
             
         description = data['description']
-        user_type = data.get('user_type', 'USER').upper()
         
-        # 1. Trích xuất số tiền chung cho cả 2 loại tài khoản
-        amount = rule_classifier.extract_amount(description)
+        # 1. Trích xuất số tiền chung
+        amount = float(rule_classifier.extract_amount(description))
         
-        # 2. Xử lý phân loại theo hạng tài khoản
-        if user_type == 'PREMIUM':
-            # Sử dụng tính năng predict_proba của Logistic Regression
-            probabilities = lr_classifier.predict_proba(description)
-            
-            if probabilities is None:
-                return jsonify({"status": "error", "message": "Mô hình AI chưa được huấn luyện"}), 500
-                
-            # Lấy danh mục có xác suất cao nhất
-            predicted_category = max(probabilities, key=probabilities.get)
-            confidence_score = probabilities[predicted_category]
-            
-            # Sắp xếp xác suất để trả về Top 3 dự đoán cho Frontend (tùy chọn)
-            sorted_probs = sorted(probabilities.items(), key=lambda x: x[1], reverse=True)
-            top_3_details = {cat: round(prob * 100, 2) for cat, prob in sorted_probs[:3]}
-            
-            # Đặt ngưỡng (Threshold) để yêu cầu người dùng review
-            # Nếu AI tự tin dưới 55%, cờ này sẽ báo True để Frontend hiện Popup xác nhận
-            needs_review = confidence_score < 0.55
-            
-            response_data = {
-                "original_description": description,
-                "amount": amount,
-                "category": predicted_category,
-                "confidence_score": round(confidence_score * 100, 2), # Đổi ra phần trăm (vd: 85.50%)
-                "needs_user_review": needs_review,
-                "top_predictions": top_3_details,
-                "classification_method": "Machine Learning (Logistic Regression)"
-            }
-            
-        else:
-            # Tài khoản USER (Miễn phí) - Chạy Rule-based
+        # 2. Xử lý phân loại bằng mô hình duy nhất (Machine Learning với Hybrid Fallback)
+        probabilities = lr_classifier.predict_proba(description)
+        
+        # Nếu model ML chưa được train, sử dụng hoàn toàn Rule-based
+        if probabilities is None:
             category = rule_classifier.predict_category(description)
-            
             response_data = {
-                "original_description": description,
+                "original_description": str(description),
                 "amount": amount,
-                "category": category,
-                "confidence_score": 100.0 if category != "Khác" else 0.0, # Rule-based khớp là 100%, ko khớp là 0%
-                "needs_user_review": category == "Khác",
+                "category": str(category),
+                "confidence_score": 100.0 if category != "Khác" else 0.0,
+                "needs_user_review": bool(category == "Khác"),
                 "top_predictions": None,
-                "classification_method": "Rule-based Dictionary"
+                "classification_method": "Rule-based (ML Not Trained Fallback)"
             }
+        else:
+            # Lấy danh mục có xác suất cao nhất của ML
+            predicted_category = max(probabilities, key=probabilities.get)
+            confidence_score = float(probabilities[predicted_category])
+            
+            # Sắp xếp xác suất để lấy top 3 dự đoán, chuyển value sang float thuần
+            sorted_probs = sorted(probabilities.items(), key=lambda x: x[1], reverse=True)
+            top_3_details = {str(cat): float(round(prob * 100, 2)) for cat, prob in sorted_probs[:3]}
+            
+            # 👉 CƠ CHẾ HYBRID FALLBACK (Dự phòng thông minh)
+            # Nếu AI không tự tin (< 50%), kiểm tra Rule-based xem có từ khóa khớp cứng rõ ràng không
+            if confidence_score < 0.50:
+                rule_category = rule_classifier.predict_category(description)
+                
+                if rule_category != "Khác":
+                    # Ưu tiên Rule-based nếu có từ khóa khớp cứng chính xác
+                    response_data = {
+                        "original_description": str(description),
+                        "amount": amount,
+                        "category": str(rule_category),
+                        "confidence_score": 100.0,
+                        "needs_user_review": False,
+                        "top_predictions": top_3_details,
+                        "classification_method": "Hybrid (ML Low Confidence -> Rule-based Override)"
+                    }
+                else:
+                    # ML độ tự tin thấp và Rule-based cũng không khớp
+                    response_data = {
+                        "original_description": str(description),
+                        "amount": amount,
+                        "category": str(predicted_category),
+                        "confidence_score": float(round(confidence_score * 100, 2)),
+                        "needs_user_review": True,
+                        "top_predictions": top_3_details,
+                        "classification_method": "Machine Learning (Logistic Regression)"
+                    }
+            else:
+                # Độ tự tin tốt (>= 50%), dùng kết quả ML
+                needs_review = confidence_score < 0.55
+                response_data = {
+                    "original_description": str(description),
+                    "amount": amount,
+                    "category": str(predicted_category),
+                    "confidence_score": float(round(confidence_score * 100, 2)),
+                    "needs_user_review": bool(needs_review),
+                    "top_predictions": top_3_details,
+                    "classification_method": "Machine Learning (Logistic Regression)"
+                }
             
         # 3. Trả về kết quả JSON
         return jsonify({

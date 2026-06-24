@@ -95,10 +95,6 @@
           </a>
 
           <p class="menu-title">HỆ THỐNG AI</p>
-          <a href="#" class="menu-item" data-tab="ai" id="nav-ai">
-            <i class="bi bi-cpu-fill"></i>
-            <span>AI Model</span>
-          </a>
           <a href="#" class="menu-item" data-tab="chatbot" id="nav-chatbot">
             <i class="bi bi-chat-dots-fill"></i>
             <span>Chatbot Logs</span>
@@ -209,13 +205,16 @@
               }
               #btnRefreshStats {
                 border-radius: 14px !important;
-                transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+                transition:
+                  transform 0.2s ease,
+                  box-shadow 0.2s ease,
+                  background-color 0.2s ease !important;
               }
               #btnRefreshStats:hover {
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
               }
-              
+
               /* Custom table action buttons - SaaS Premium Style */
               .custom-table .btn-action-custom {
                 width: 36px;
@@ -484,8 +483,6 @@
               </div>
             </div>
 
-
-
             <!-- Section 5: Hoạt động gần đây -->
             <div class="row g-4 mb-4">
               <div class="col-12">
@@ -604,12 +601,19 @@
                   </tbody>
                 </table>
               </div>
-              
+
               <!-- Pagination Container -->
-              <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                <div class="text-muted small" id="usersPaginationInfo">Hiển thị 0-0 trên 0 người dùng</div>
+              <div
+                class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2"
+              >
+                <div class="text-muted small" id="usersPaginationInfo">
+                  Hiển thị 0-0 trên 0 người dùng
+                </div>
                 <nav aria-label="Users Page Navigation">
-                  <ul class="pagination pagination-sm mb-0" id="usersPagination">
+                  <ul
+                    class="pagination pagination-sm mb-0"
+                    id="usersPagination"
+                  >
                     <!-- Rendered dynamically -->
                   </ul>
                 </nav>
@@ -1091,231 +1095,6 @@
               </div>
             </div>
           </div>
-
-          <!-- 5. AI MODEL PANEL -->
-          <section class="tab-pane d-none" id="tab-ai">
-            <!-- HÀNG 1 - AI OVERVIEW (4 Card ngang) -->
-            <div class="row g-4 mb-4">
-              <!-- Card 1: AI Engine -->
-              <div class="col-xl-3 col-md-6">
-                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
-                  <div>
-                    <span class="text-muted small d-block mb-1">🤖 AI Engine</span>
-                    <h4 class="mb-0 fw-bold fs-6 text-truncate" id="aiEngineText" style="max-width: 170px;">Đang tải...</h4>
-                  </div>
-                  <div class="icon-shape bg-primary-soft rounded-circle p-3 text-primary fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-cpu"></i>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Card 2: Accuracy -->
-              <div class="col-xl-3 col-md-6">
-                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
-                  <div>
-                    <span class="text-muted small d-block mb-1">🎯 Accuracy</span>
-                    <div class="d-flex align-items-baseline gap-2">
-                      <h4 class="mb-0 fw-bold fs-4" id="aiAccuracyOverviewText">0.0%</h4>
-                      <span class="text-success small fw-medium" id="aiAccuracyTrendText" style="font-size: 0.75rem;">+2.3% tháng này</span>
-                    </div>
-                  </div>
-                  <div class="icon-shape bg-success-soft rounded-circle p-3 text-success fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-bullseye"></i>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Card 3: Transactions Classified -->
-              <div class="col-xl-3 col-md-6">
-                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
-                  <div>
-                    <span class="text-muted small d-block mb-1">📊 Transactions Classified</span>
-                    <h4 class="mb-0 fw-bold fs-4" id="aiTransactionsClassifiedText">0</h4>
-                  </div>
-                  <div class="icon-shape bg-info-soft rounded-circle p-3 text-info fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-check-circle"></i>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Card 4: AI Requests -->
-              <div class="col-xl-3 col-md-6">
-                <div class="chart-card card-glow d-flex align-items-center justify-content-between p-4 h-100" style="border-radius: 20px;">
-                  <div>
-                    <span class="text-muted small d-block mb-1">⚡ AI Requests</span>
-                    <h4 class="mb-0 fw-bold fs-4" id="aiRequestsText">0</h4>
-                  </div>
-                  <div class="icon-shape bg-warning-soft rounded-circle p-3 text-warning fs-4" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-lightning-charge"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- HÀNG 2 - Performance & Health -->
-            <div class="row g-4 mb-4">
-              <!-- AI Performance Chart (8 cột) -->
-              <div class="col-lg-8">
-                <div class="chart-card card-glow h-100 p-4" style="border-radius: 20px;">
-                  <h5 class="chart-title mb-3">AI Performance Chart</h5>
-                  <p class="text-muted small mb-4">Độ chính xác AI theo thời gian</p>
-                  <div style="height: 250px; position: relative;">
-                    <canvas id="aiPerformanceChart"></canvas>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- AI Health (4 cột) -->
-              <div class="col-lg-4">
-                <div class="chart-card card-glow h-100 p-4" style="border-radius: 20px;">
-                  <h5 class="chart-title mb-3">AI Health</h5>
-                  <div class="d-flex flex-column gap-3 mt-4">
-                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
-                      <span class="text-muted small">Model Status</span>
-                      <span class="badge bg-success-soft text-success px-2 py-1" id="aiHealthStatus">Online</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
-                      <span class="text-muted small">Training Data</span>
-                      <strong id="aiHealthTrainingData">0 mẫu</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
-                      <span class="text-muted small">Last Training</span>
-                      <strong id="aiHealthLastTraining">21/06/2026</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2">
-                      <span class="text-muted small">Version</span>
-                      <strong id="aiHealthVersion">v1.0</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- HÀNG 3 - AI Test Playground -->
-            <div class="row g-4 mb-4">
-              <div class="col-12">
-                <div class="chart-card card-glow p-4" style="border-radius: 20px;">
-                  <h5 class="chart-title mb-3">AI Test Playground</h5>
-                  <p class="text-muted small mb-4">Nhập nội dung giao dịch mẫu để chạy thử mô hình phân loại AI hiện tại.</p>
-                  
-                  <div class="row g-4">
-                    <!-- Input bên trái -->
-                    <div class="col-lg-7">
-                      <div class="mb-3">
-                        <textarea class="form-control" id="aiPlaygroundInput" rows="5" placeholder="Ví dụ:&#10;Ăn phở bò 45k&#10;Đi Grab 25000&#10;Đóng tiền điện 500000" style="resize: none; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 12px; font-size: 0.9rem; padding: 12px;"></textarea>
-                      </div>
-                      <button class="btn btn-primary-gradient w-100 py-3 fw-semibold" id="btnPlaygroundAnalyze">
-                        <i class="bi bi-cpu me-2"></i>Phân tích giao dịch
-                      </button>
-                    </div>
-                    
-                    <!-- Kết quả bên phải -->
-                    <div class="col-lg-5">
-                      <div class="h-100 d-flex flex-column justify-content-center p-4 rounded-4" style="background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255, 255, 255, 0.15); min-height: 200px;">
-                        <div id="aiPlaygroundResultEmpty" class="text-center py-4">
-                          <i class="bi bi-clipboard-data text-muted fs-1 mb-2 d-block"></i>
-                          <span class="text-muted small">Nhập thông tin giao dịch và bấm phân tích để xem kết quả.</span>
-                        </div>
-                        <div id="aiPlaygroundResultContent" class="d-none">
-                          <h6 class="fw-bold mb-3 pb-2 border-bottom border-secondary text-primary">Kết quả phân tích:</h6>
-                          <div class="row g-3">
-                            <div class="col-6">
-                              <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
-                                <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Danh mục dự đoán</small>
-                                <strong id="aiPlaygroundCategory" class="text-success fs-6">-</strong>
-                              </div>
-                            </div>
-                            <div class="col-6">
-                              <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
-                                <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Độ tin cậy</small>
-                                <strong id="aiPlaygroundConfidence" class="text-primary fs-6">0%</strong>
-                              </div>
-                            </div>
-                            <div class="col-12">
-                              <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
-                                <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">Từ khóa nhận diện</small>
-                                <div id="aiPlaygroundKeywords" class="d-flex flex-wrap gap-1">
-                                  <span class="text-muted small">-</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- HÀNG 4 - Dataset Statistics & Top Keywords -->
-            <div class="row g-4 mb-4">
-              <!-- Dataset Statistics (8 cột) -->
-              <div class="col-lg-8">
-                <div class="chart-card card-glow p-4" style="border-radius: 20px;">
-                  <h5 class="chart-title mb-3">Dataset Statistics</h5>
-                  <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                    <table class="table custom-table mb-0">
-                      <thead>
-                        <tr>
-                          <th>Loại danh mục</th>
-                          <th>Số mẫu huấn luyện</th>
-                        </tr>
-                      </thead>
-                      <tbody id="aiDatasetStatsTable">
-                        <tr>
-                          <td colspan="2" class="text-center text-muted py-3">Đang tải dữ liệu thống kê...</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Top Keywords (4 cột) -->
-              <div class="col-lg-4">
-                <div class="chart-card card-glow p-4 h-100" style="border-radius: 20px;">
-                  <h5 class="chart-title mb-3">Top Keywords</h5>
-                  <p class="text-muted small mb-3">Các từ khóa nhận diện phổ biến nhất</p>
-                  <div id="aiTopKeywordsContainer" class="d-flex flex-wrap gap-2 pt-2">
-                    <span class="text-muted small">Đang tải...</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- HÀNG 5 - Training Management -->
-            <div class="row g-4">
-              <div class="col-12">
-                <div class="chart-card card-glow p-4" style="border-radius: 20px;">
-                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-                    <div>
-                      <h5 class="chart-title mb-2">Training Management</h5>
-                      <p class="text-muted small mb-0">
-                        Huấn luyện lại mô hình phân loại chi tiêu dựa trên dữ liệu thực tế hiện có. 
-                        Lần huấn luyện cuối: <strong id="aiLastTrainMeta">21/06/2026</strong>. 
-                        Tổng số mẫu: <strong id="aiLastTrainSamples">0 mẫu</strong>.
-                      </p>
-                    </div>
-                    <button class="btn btn-primary-gradient px-4 py-3 fw-semibold text-nowrap" id="btnPlaygroundRetrain" style="border-radius: 12px;">
-                      <i class="bi bi-arrow-repeat me-2"></i>Huấn luyện lại Model
-                    </button>
-                  </div>
-                  
-                  <!-- Retrain Progress bar -->
-                  <div class="retrain-progress-box mt-4 d-none" id="playgroundRetrainProgressBox">
-                    <div class="d-flex justify-content-between mb-1">
-                      <span class="small text-muted" id="playgroundRetrainStatusText">Đang chuẩn bị tập dữ liệu huấn luyện...</span>
-                      <span class="small fw-bold text-primary" id="playgroundRetrainPercentText">0%</span>
-                    </div>
-                    <div class="progress progress-custom" style="height: 6px;">
-                      <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary-gradient" id="playgroundRetrainProgressBar" role="progressbar" style="width: 0%;"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <!-- 6. CHATBOT LOGS PANEL -->
           <section class="tab-pane d-none" id="tab-chatbot">

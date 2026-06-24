@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 1. BIẾN TOÀN CỤC ---
   let globalCategories = [];
   let userRole = "USER";
+  let isPremium = false;
   let activeTab = "overview";
   let currentPage = 1;
   const ITEMS_PER_PAGE = 10;
@@ -466,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (topbarTitle) topbarTitle.innerText = config.title;
         if (topbarSubtext) topbarSubtext.innerText = config.description;
         if (tabId === "settings") {
-          if (userRole === "PREMIUM" || userRole === "ADMIN") {
+          if (isPremium || userRole === "ADMIN") {
             topbarActions.innerHTML = `
               <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
                 <i class="bi bi-star-fill me-1"></i>Tài khoản Premium
@@ -686,6 +687,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const res = json.data;
       userRole = res.user.vaiTro;
+      isPremium = res.user.isPremium;
 
       // Cập nhật Sidebar User info
       const nameEl = document.getElementById("user-name");
@@ -1715,6 +1717,85 @@ window.changePage = function(page) {
           }
         }
 
+        // 2. Render Giao diện Dự báo & Gợi ý (Sử dụng dữ liệu Dự báo thực tế từ API Backend)
+        const resForecast = document.getElementById("resForecast");
+        const resForecastTrend = document.getElementById("resForecastTrend");
+        const resInsights = document.getElementById("resInsights");
+        
+        let baseForecast = 0;
+        let trend = "neutral";
+        
+        try {
+          const forecastResponse = await fetch("/api/analytics/forecast");
+          if (forecastResponse.ok) {
+            const forecastRes = await forecastResponse.json();
+            if (forecastRes.status === "success") {
+              baseForecast = forecastRes.predicted_amount || 0;
+              trend = forecastRes.trend || "neutral";
+            }
+          }
+        } catch (err) {
+          console.warn("Không thể lấy dữ liệu dự báo từ API Backend, sử dụng fallback mặc định (0 đ).", err);
+        }
+        
+        if (resForecast) {
+          const newForecast = baseForecast + data.amount;
+          resForecast.innerText = newForecast.toLocaleString("vi-VN") + " đ";
+        }
+        
+        if (resForecastTrend) {
+          if (trend === "up" || data.amount > 500000) {
+            resForecastTrend.innerHTML = '<span class="text-danger"><i class="bi bi-arrow-up-right"></i> Đang có xu hướng tăng chi tiêu</span>';
+          } else if (trend === "down") {
+            resForecastTrend.innerHTML = '<span class="text-success"><i class="bi bi-arrow-down-right"></i> Dự kiến giảm chi tiêu</span>';
+          } else {
+            resForecastTrend.innerHTML = '<span class="text-success"><i class="bi bi-arrow-down-right"></i> Vẫn nằm trong tầm kiểm soát</span>';
+          }
+        }
+        
+        if (resInsights) {
+          resInsights.innerHTML = "";
+          let insights = [];
+          
+          // 1. Thêm gợi ý nhanh dựa trên danh mục vừa phân loại
+          if (data.category === "Ăn uống") {
+            insights.push("Giảm chi ăn uống bên ngoài trong tuần tới để tiết kiệm ngân sách.");
+          } else if (data.category === "Mua sắm") {
+            insights.push("Khoản mua sắm này làm bạn gần chạm ngưỡng budget của tháng.");
+            insights.push("Nên cân nhắc kỹ trước khi mua các món đồ không thực sự thiết yếu.");
+          }
+          
+          // 2. Gọi API Phân tích MoM thực tế từ Backend để lấy ý kiến và cảnh báo từ AI Coach
+          try {
+            const trendResponse = await fetch("/api/analytics/trend/mom");
+            if (trendResponse.ok) {
+              const trendJson = await trendResponse.json();
+              if (trendJson.status === "success" && trendJson.data) {
+                const overall = trendJson.data.overall;
+                if (overall.insight) {
+                  insights.push(overall.insight);
+                }
+                if (overall.warning) {
+                  insights.push(overall.warning);
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Không thể lấy dữ liệu phân tích MoM từ backend:", err);
+          }
+          
+          // Fallback dự phòng nếu không tải được thông tin nào
+          if (insights.length === 0) {
+            insights.push("Cẩn thận vượt budget tổng của tháng này.");
+          }
+          
+          insights.forEach(text => {
+            let li = document.createElement("li");
+            li.innerHTML = text; // Sử dụng innerHTML vì cảnh báo từ BE chứa các ký tự đặc biệt / emoji
+            resInsights.appendChild(li);
+          });
+        }
+
         if (spinner) spinner.style.display = "none";
         if (resBox) resBox.style.display = "block";
 
@@ -1872,11 +1953,201 @@ window.changePage = function(page) {
     }
   }
 
-  // --- 9. BẮT ĐẦU KHỞI CHẠY (INITIALIZATION) ---
+  // --- 9. TÍCH HỢP AI FLOATING CHATBOT WIDGET ---
+  function setupAiChatbot() {
+    const chatBubbleBtn = document.getElementById("chat-widget-bubble");
+    const chatWindow = document.getElementById("chat-widget-window");
+    const chatCloseBtn = document.getElementById("chat-widget-close");
+    const chatForm = document.getElementById("chat-widget-form");
+    const chatInput = document.getElementById("chat-widget-input");
+    const chatMessages = document.getElementById("chat-widget-messages");
+
+    if (!chatBubbleBtn || !chatWindow || !chatCloseBtn || !chatForm || !chatInput || !chatMessages) {
+      console.warn("Không tìm thấy các phần tử của AI Chatbot Floating Widget.");
+      return;
+    }
+
+    // Toggle đóng mở cửa sổ chat
+    chatBubbleBtn.addEventListener("click", () => {
+      // 1. Kiểm tra quyền Premium (Admin cũng được phép sử dụng)
+      if (!isPremium && userRole !== "ADMIN") {
+        // Chuyển hướng đến trang nâng cấp Premium
+        window.location.href = "/premium";
+        return;
+      }
+
+      // 2. Mở cửa sổ chat
+      const isClosed = chatWindow.classList.contains("d-none");
+      if (isClosed) {
+        chatWindow.classList.remove("d-none");
+        scrollToBottom();
+        setTimeout(() => chatInput.focus(), 100);
+      } else {
+        chatWindow.classList.add("d-none");
+      }
+    });
+
+    // Đóng cửa sổ chat
+    chatCloseBtn.addEventListener("click", () => {
+      chatWindow.classList.add("d-none");
+    });
+
+    // Xử lý gửi tin nhắn
+    chatForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const question = chatInput.value.trim();
+      if (!question) return;
+
+      // Xóa nội dung input
+      chatInput.value = "";
+
+      // Hiển thị tin nhắn của user lên khung chat
+      appendMessage("user", question);
+      scrollToBottom();
+
+      // Hiển thị typing indicator
+      const typingIndicator = appendTypingIndicator();
+      scrollToBottom();
+
+      try {
+        const response = await fetch("/api/ai/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: question })
+        });
+
+        // Xóa typing indicator
+        if (typingIndicator && typingIndicator.parentNode) {
+          typingIndicator.parentNode.removeChild(typingIndicator);
+        }
+
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          // Hiển thị phản hồi từ AI
+          appendMessage("bot", data.reply);
+        } else {
+          // Hiển thị thông báo lỗi
+          appendMessage("bot", `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Lỗi: ${data.error || "Không thể tải phản hồi."}</span>`, true);
+        }
+      } catch (err) {
+        // Xóa typing indicator nếu có lỗi kết nối
+        if (typingIndicator && typingIndicator.parentNode) {
+          typingIndicator.parentNode.removeChild(typingIndicator);
+        }
+        appendMessage("bot", `<span class="text-danger"><i class="bi bi-wifi-off me-1"></i>Lỗi kết nối: ${err.message || "Không thể kết nối đến máy chủ."}</span>`, true);
+      }
+
+      scrollToBottom();
+    });
+
+    // Hàm append tin nhắn vào khung chat
+    function appendMessage(sender, text, isHtml = false) {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `message ${sender}`;
+      
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "message-content";
+      
+      if (isHtml) {
+        contentDiv.innerHTML = text;
+      } else {
+        contentDiv.innerHTML = formatMarkdown(text);
+      }
+      
+      messageDiv.appendChild(contentDiv);
+      chatMessages.appendChild(messageDiv);
+    }
+
+    // Hàm tạo Typing Indicator
+    function appendTypingIndicator() {
+      const indicatorDiv = document.createElement("div");
+      indicatorDiv.className = "message bot typing-indicator-wrapper";
+      
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "message-content typing-indicator";
+      contentDiv.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      `;
+      
+      indicatorDiv.appendChild(contentDiv);
+      chatMessages.appendChild(indicatorDiv);
+      return indicatorDiv;
+    }
+
+    // Cuộn xuống cuối khung chat
+    function scrollToBottom() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Định dạng Markdown đơn giản cho tin nhắn AI
+    function formatMarkdown(text) {
+      if (!text) return "";
+      
+      let html = text;
+      
+      // Escape HTML ký tự đặc biệt để chống XSS (ngoại trừ khi đã được wrap an toàn)
+      html = html
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+        
+      // Thay thế **text** thành <strong>text</strong>
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      // Thay thế dòng kẻ --- thành <hr>
+      html = html.replace(/^---$/gim, '<hr>');
+      
+      // Xử lý danh sách gạch đầu dòng (bullet points)
+      let lines = html.split('\n');
+      let inList = false;
+      let formattedLines = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (line.startsWith('- ') || line.startsWith('* ')) {
+          if (!inList) {
+            formattedLines.push('<ul>');
+            inList = true;
+          }
+          formattedLines.push(`<li>${line.substring(2)}</li>`);
+        } else {
+          if (inList) {
+            formattedLines.push('</ul>');
+            inList = false;
+          }
+          formattedLines.push(line);
+        }
+      }
+      if (inList) {
+        formattedLines.push('</ul>');
+      }
+      
+      html = formattedLines.join('\n');
+      
+      // Thay thế dấu xuống dòng bằng thẻ <br> ngoài các thẻ ul/li
+      html = html.replace(/\n/g, '<br>');
+      // Dọn dẹp các <br> dư thừa sau thẻ list
+      html = html.replace(/<\/ul><br>/g, '</ul>');
+      html = html.replace(/<ul><br>/g, '<ul>');
+      
+      return html;
+    }
+  }
+
+  // --- 10. BẮT ĐẦU KHỞI CHẠY (INITIALIZATION) ---
   (async function init() {
     await loadCategories();
+    await loadHomeData(); // Tải trước thông tin người dùng và vai trò để đồng bộ UI
+    setupAiChatbot(); // Khởi tạo AI chatbot widget
     const urlParams = new URLSearchParams(window.location.search);
     const startTab = urlParams.get("tab") || "overview";
     switchTab(startTab);
   })();
 });
+

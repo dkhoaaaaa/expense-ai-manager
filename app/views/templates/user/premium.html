@@ -71,7 +71,8 @@
         <div class="sidebar-user">
           <div class="user-card-left">
             <div class="user-avatar" id="user-avatar">
-              {{ jwt_user.name[0].upper() if jwt_user and jwt_user.name else 'U' }}
+              {{ jwt_user.name[0].upper() if jwt_user and jwt_user.name else 'U'
+              }}
             </div>
             <div class="user-info">
               <div class="user-name" id="user-name">
@@ -157,7 +158,10 @@
           <div class="topbar-text">
             <p class="page-label">PREMIUM</p>
             <h1>Nâng cấp tài khoản Premium</h1>
-            <p>Mở khóa toàn bộ tính năng AI hỗ trợ quản lý tài chính thông minh hơn.</p>
+            <p>
+              Mở khóa toàn bộ tính năng AI hỗ trợ quản lý tài chính thông minh
+              hơn.
+            </p>
           </div>
 
           <div class="topbar-actions d-none d-sm-block">
@@ -180,7 +184,10 @@
                   <span class="fw-extrabold text-success fs-1">49.000đ</span>
                   <span class="text-muted">/tháng</span>
                 </div>
-                <button id="upgradePremiumNowBtn" class="btn btn-main py-3 px-5 rounded-pill fw-bold text-uppercase">
+                <button
+                  id="upgradePremiumNowBtn"
+                  class="btn btn-main py-3 px-5 rounded-pill fw-bold text-uppercase"
+                >
                   Nâng cấp Premium ngay
                 </button>
               </div>
@@ -189,19 +196,27 @@
                 <ul class="list-unstyled d-flex flex-column gap-3">
                   <li class="d-flex align-items-center gap-2">
                     <i class="bi bi-check-circle-fill text-success"></i>
-                    <span class="fw-medium">AI phân loại giao dịch không giới hạn</span>
+                    <span class="fw-medium"
+                      >AI Chatbot tư vấn tài chính cá nhân 24/7</span
+                    >
                   </li>
                   <li class="d-flex align-items-center gap-2">
                     <i class="bi bi-check-circle-fill text-success"></i>
-                    <span class="fw-medium">Dự đoán chi tiêu tháng tiếp theo</span>
+                    <span class="fw-medium"
+                      >Dự đoán chi tiêu tháng tiếp theo</span
+                    >
                   </li>
                   <li class="d-flex align-items-center gap-2">
                     <i class="bi bi-check-circle-fill text-success"></i>
-                    <span class="fw-medium">Chatbot tư vấn tài chính cá nhân</span>
+                    <span class="fw-medium"
+                      >Insights nâng cao & Gợi ý tiết kiệm thực tế</span
+                    >
                   </li>
                   <li class="d-flex align-items-center gap-2">
                     <i class="bi bi-check-circle-fill text-success"></i>
-                    <span class="fw-medium">Báo cáo phân tích chuyên sâu nâng cao</span>
+                    <span class="fw-medium"
+                      >Báo cáo phân tích chuyên sâu (Timeseries & MoM)</span
+                    >
                   </li>
                 </ul>
               </div>
@@ -214,12 +229,23 @@
             <!-- Card 1 -->
             <div class="col-md-6">
               <div class="app-card p-4 h-100 d-flex gap-3">
-                <div class="benefit-icon-box bg-success-subtle text-success rounded-4 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; font-size: 24px; flex-shrink: 0;">
+                <div
+                  class="benefit-icon-box bg-success-subtle text-success rounded-4 d-flex align-items-center justify-content-center"
+                  style="
+                    width: 54px;
+                    height: 54px;
+                    font-size: 24px;
+                    flex-shrink: 0;
+                  "
+                >
                   🤖
                 </div>
                 <div>
                   <h5 class="fw-bold mb-2">AI Phân Tích</h5>
-                  <p class="text-muted small mb-0">Tự động nhận diện và phân loại giao dịch chi tiêu/thu nhập thông minh bằng mô hình Machine Learning.</p>
+                  <p class="text-muted small mb-0">
+                    Tự động nhận diện và phân loại giao dịch chi tiêu/thu nhập
+                    thông minh bằng mô hình Machine Learning.
+                  </p>
                 </div>
               </div>
             </div>
@@ -227,12 +253,23 @@
             <!-- Card 2 -->
             <div class="col-md-6">
               <div class="app-card p-4 h-100 d-flex gap-3">
-                <div class="benefit-icon-box bg-primary-subtle text-primary rounded-4 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; font-size: 24px; flex-shrink: 0;">
+                <div
+                  class="benefit-icon-box bg-primary-subtle text-primary rounded-4 d-flex align-items-center justify-content-center"
+                  style="
+                    width: 54px;
+                    height: 54px;
+                    font-size: 24px;
+                    flex-shrink: 0;
+                  "
+                >
                   📈
                 </div>
                 <div>
                   <h5 class="fw-bold mb-2">Dự Đoán Chi Tiêu</h5>
-                  <p class="text-muted small mb-0">Ước tính hạn mức ngân sách và xu hướng tiêu dùng trong tương lai dựa trên dữ liệu lịch sử.</p>
+                  <p class="text-muted small mb-0">
+                    Ước tính hạn mức ngân sách và xu hướng tiêu dùng trong tương
+                    lai dựa trên dữ liệu lịch sử.
+                  </p>
                 </div>
               </div>
             </div>
@@ -240,12 +277,23 @@
             <!-- Card 3 -->
             <div class="col-md-6">
               <div class="app-card p-4 h-100 d-flex gap-3">
-                <div class="benefit-icon-box bg-info-subtle text-info rounded-4 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; font-size: 24px; flex-shrink: 0;">
+                <div
+                  class="benefit-icon-box bg-info-subtle text-info rounded-4 d-flex align-items-center justify-content-center"
+                  style="
+                    width: 54px;
+                    height: 54px;
+                    font-size: 24px;
+                    flex-shrink: 0;
+                  "
+                >
                   💬
                 </div>
                 <div>
                   <h5 class="fw-bold mb-2">Chatbot AI</h5>
-                  <p class="text-muted small mb-0">Hỏi đáp tư vấn quản lý tài chính cá nhân trực quan, đề xuất kế hoạch tiết kiệm hiệu quả mọi lúc.</p>
+                  <p class="text-muted small mb-0">
+                    Hỏi đáp tư vấn quản lý tài chính cá nhân trực quan, đề xuất
+                    kế hoạch tiết kiệm hiệu quả mọi lúc.
+                  </p>
                 </div>
               </div>
             </div>
@@ -253,12 +301,23 @@
             <!-- Card 4 -->
             <div class="col-md-6">
               <div class="app-card p-4 h-100 d-flex gap-3">
-                <div class="benefit-icon-box bg-warning-subtle text-warning rounded-4 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; font-size: 24px; flex-shrink: 0;">
+                <div
+                  class="benefit-icon-box bg-warning-subtle text-warning rounded-4 d-flex align-items-center justify-content-center"
+                  style="
+                    width: 54px;
+                    height: 54px;
+                    font-size: 24px;
+                    flex-shrink: 0;
+                  "
+                >
                   📊
                 </div>
                 <div>
                   <h5 class="fw-bold mb-2">Báo Cáo Nâng Cao</h5>
-                  <p class="text-muted small mb-0">Hệ thống biểu đồ phân tích cơ cấu chi tiêu trực quan sinh động theo danh mục và thời gian.</p>
+                  <p class="text-muted small mb-0">
+                    Hệ thống biểu đồ phân tích cơ cấu chi tiêu trực quan sinh
+                    động theo danh mục và thời gian.
+                  </p>
                 </div>
               </div>
             </div>
@@ -273,34 +332,68 @@
                   <tr class="table-light">
                     <th class="ps-4 py-3" style="width: 50%">Tính năng</th>
                     <th class="text-center py-3" style="width: 25%">Free</th>
-                    <th class="text-center py-3 text-success" style="width: 25%">Premium</th>
+                    <th
+                      class="text-center py-3 text-success"
+                      style="width: 25%"
+                    >
+                      Premium
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td class="ps-4 py-3 fw-medium">Quản lý giao dịch</td>
-                    <td class="text-center text-success"><i class="bi bi-check-lg fs-5"></i></td>
-                    <td class="text-center text-success"><i class="bi bi-check-lg fs-5"></i></td>
+                    <td class="text-center text-success">
+                      <i class="bi bi-check-lg fs-5"></i>
+                    </td>
+                    <td class="text-center text-success">
+                      <i class="bi bi-check-lg fs-5"></i>
+                    </td>
                   </tr>
                   <tr>
-                    <td class="ps-4 py-3 fw-medium">AI phân loại</td>
-                    <td class="text-center text-muted small">Giới hạn</td>
-                    <td class="text-center text-success fw-bold"><i class="bi bi-check-lg fs-5"></i> Không giới hạn</td>
+                    <td class="ps-4 py-3 fw-medium">AI Phân loại giao dịch (Machine Learning)</td>
+                    <td class="text-center text-success">
+                      <i class="bi bi-check-lg fs-5"></i> Có
+                    </td>
+                    <td class="text-center text-success fw-bold">
+                      <i class="bi bi-check-lg fs-5"></i> Có
+                    </td>
                   </tr>
                   <tr>
-                    <td class="ps-4 py-3 fw-medium">Dự đoán chi tiêu</td>
-                    <td class="text-center text-danger"><i class="bi bi-x-lg fs-6"></i></td>
-                    <td class="text-center text-success"><i class="bi bi-check-lg fs-5"></i></td>
+                    <td class="ps-4 py-3 fw-medium">Dự đoán chi tiêu tháng tới</td>
+                    <td class="text-center text-danger">
+                      <i class="bi bi-x-lg fs-6"></i>
+                    </td>
+                    <td class="text-center text-success">
+                      <i class="bi bi-check-lg fs-5"></i>
+                    </td>
                   </tr>
                   <tr>
-                    <td class="ps-4 py-3 fw-medium">Chatbot AI</td>
-                    <td class="text-center text-danger"><i class="bi bi-x-lg fs-6"></i></td>
-                    <td class="text-center text-success"><i class="bi bi-check-lg fs-5"></i></td>
+                    <td class="ps-4 py-3 fw-medium">Chatbot AI Tư vấn tài chính 24/7</td>
+                    <td class="text-center text-danger">
+                      <i class="bi bi-x-lg fs-6"></i>
+                    </td>
+                    <td class="text-center text-success">
+                      <i class="bi bi-check-lg fs-5"></i>
+                    </td>
                   </tr>
                   <tr>
-                    <td class="ps-4 py-3 fw-medium">Báo cáo nâng cao</td>
-                    <td class="text-center text-danger"><i class="bi bi-x-lg fs-6"></i></td>
-                    <td class="text-center text-success"><i class="bi bi-check-lg fs-5"></i></td>
+                    <td class="ps-4 py-3 fw-medium">Báo cáo phân tích nâng cao (Timeseries & MoM)</td>
+                    <td class="text-center text-danger">
+                      <i class="bi bi-x-lg fs-6"></i>
+                    </td>
+                    <td class="text-center text-success">
+                      <i class="bi bi-check-lg fs-5"></i>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="ps-4 py-3 fw-medium">Insights nâng cao & Gợi ý tiết kiệm</td>
+                    <td class="text-center text-danger">
+                      <i class="bi bi-x-lg fs-6"></i>
+                    </td>
+                    <td class="text-center text-success">
+                      <i class="bi bi-check-lg fs-5"></i>
+                    </td>
                   </tr>
                 </tbody>
               </table>
