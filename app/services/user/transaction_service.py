@@ -6,16 +6,22 @@ from datetime import datetime
 
 # ➕ CREATE TRANSACTION
 def create_transaction(user_id, data):
+    ngay_giao_dich_str = data.get("ngay_giao_dich")
+    if not ngay_giao_dich_str:
+        ngay_giao_dich = datetime.now().date()
+    else:
+        try:
+            ngay_giao_dich = datetime.strptime(ngay_giao_dich_str, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            ngay_giao_dich = datetime.now().date()
+
     t = Transaction(
         idTK=user_id,
         amount=data["amount"],
         type=data["type"],  # income / expense
         category_id=data["category_id"],
         description=data.get("description", ""),
-        ngayGiaoDich=datetime.strptime(
-            data["ngay_giao_dich"],
-            "%Y-%m-%d"
-        ).date()
+        ngayGiaoDich=ngay_giao_dich
     )
 
     db.session.add(t)

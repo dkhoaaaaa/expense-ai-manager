@@ -14,6 +14,8 @@ class AdminTransactionController:
                 "categoryId": request.args.get("categoryId", ""),
                 "fromDate": request.args.get("fromDate", ""),
                 "toDate": request.args.get("toDate", ""),
+                "page": request.args.get("page", 1),
+                "limit": request.args.get("limit", 10),
             }
             result = AdminTransactionService.getTransactionList(filters)
             statusCode = 200 if result["success"] else 400

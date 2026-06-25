@@ -1,3 +1,4 @@
+from sqlalchemy.orm import synonym
 from app import db
 
 
@@ -18,5 +19,14 @@ class GoiPremium(db.Model):
 
     ngayTao = db.Column("ngay_tao", db.DateTime)
 
+    # Synonyms tương thích ngược
+    tai_khoan_id = synonym("idTK")
+    ten_goi = synonym("tenGoi")
+    trang_thai = synonym("trangThai")
+    ngay_bat_dau = synonym("ngayBatDau")
+    ngay_ket_thuc = synonym("ngayKetThuc")
+    ngay_tao = synonym("ngayTao")
+
     def __repr__(self):
         return f"<GoiPremium {self.tenGoi}>"
+

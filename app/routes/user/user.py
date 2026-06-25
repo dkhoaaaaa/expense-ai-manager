@@ -86,6 +86,8 @@ def api_mom_trend():
         
         if result.get('status') == 'error':
             return jsonify(result), 400
+        if result.get('status') == 'insufficient_data':
+            return jsonify(result), 200
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

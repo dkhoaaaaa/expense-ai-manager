@@ -192,6 +192,7 @@ def api_chat():
     try:
         # 1. Xác thực và kiểm tra trạng thái Premium trong database
         from app.models.taiKhoanModel import TaiKhoan
+        from app.models.tinNhanChatbotModel import TinNhanChatbot
         account = TaiKhoan.query.get(user_id)
         if not account:
             return jsonify({"success": False, "error": "Người dùng không tồn tại"}), 404
@@ -207,9 +208,29 @@ def api_chat():
                 "error": "Tính năng Chatbot AI chỉ dành riêng cho tài khoản Premium."
             }), 403
             
+        # Lưu tin nhắn của User vào DB trước khi gọi AI
+        user_msg = TinNhanChatbot(
+            idTK=user_id,
+            nguoiGui='USER',
+            noiDung=message,
+            ngayTao=datetime.utcnow()
+        )
+        db.session.add(user_msg)
+        db.session.commit()
+            
         # 2. Gọi AI Service để sinh câu trả lời
         from app.services.ai.ai_service import AIService
         reply = AIService.generate_response(user_id, message)
+        
+        # Lưu tin nhắn của Bot vào DB sau khi sinh câu trả lời thành công
+        bot_msg = TinNhanChatbot(
+            idTK=user_id,
+            nguoiGui='BOT',
+            noiDung=reply,
+            ngayTao=datetime.utcnow()
+        )
+        db.session.add(bot_msg)
+        db.session.commit()
         
         return jsonify({
             "success": True,
@@ -222,3 +243,49 @@ def api_chat():
     except Exception as e:
         # Bắt các lỗi kết nối hoặc lỗi bất ngờ khác
         return jsonify({"success": False, "error": f"Lỗi chatbot: {str(e)}"}), 500
+
+@api_bp.route('/ai/chat/history', methods=['GET'])
+@jwt_required()
+def api_chat_history():
+    user_id = get_jwt_identity()
+    try:
+        from app.models.tinNhanChatbotModel import TinNhanChatbot
+        from app.models.taiKhoanModel import TaiKhoan
+        account = TaiKhoan.query.get(user_id)
+        if not account:
+            return jsonify({"success": False, "error": "Người dùng không tồn tại"}), 404
+            
+        # Kiểm tra và tự động cập nhật thời hạn Premium
+        from app.helpers import check_premium_status
+        check_premium_status(account)
+        
+        # Chặn nếu không phải Premium hoặc Admin
+        if account.vai_tro not in ['PREMIUM', 'ADMIN']:
+            return jsonify({
+                "success": False, 
+                "error": "Tính năng Chatbot AI chỉ dành riêng cho tài khoản Premium."
+            }), 403
+
+        # Lấy tối đa 3 tin nhắn gần đây nhất từ DB (mới nhất xếp trước)
+        history = TinNhanChatbot.query.filter_by(idTK=user_id)\
+            .order_by(TinNhanChatbot.id.desc())\
+            .limit(3)\
+            .all()
+            
+        # Đảo ngược mảng để sắp xếp từ cũ đến mới (để hiện đúng luồng chat)
+        history.reverse()
+        
+        messages_data = []
+        for msg in history:
+            messages_data.append({
+                "sender": "user" if msg.nguoiGui == "USER" else "bot",
+                "text": msg.noiDung
+            })
+            
+        return jsonify({
+            "success": True,
+            "messages": messages_data
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Lỗi lấy lịch sử chatbot: {str(e)}"}), 500

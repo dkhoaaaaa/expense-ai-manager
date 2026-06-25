@@ -4,6 +4,13 @@
 let transactionSearchTimer = null;
 let transactionCategoryLoaded = false;
 
+// Initialize pagination state in AdminState
+if (typeof AdminState !== "undefined" && !AdminState.transactionsPage) {
+  AdminState.transactionsPage = 1;
+} else if (typeof AdminState === "undefined") {
+  window.AdminState = { transactionsPage: 1 };
+}
+
 function initTransactionsModule() {
   const searchInput = document.getElementById("searchTxnInput");
   const typeFilter = document.getElementById("filterTxnType");
@@ -13,13 +20,19 @@ function initTransactionsModule() {
 
   if (searchInput) {
     searchInput.addEventListener("input", () => {
+      AdminState.transactionsPage = 1; // Reset to page 1 on search
       clearTimeout(transactionSearchTimer);
       transactionSearchTimer = setTimeout(populateTransactionsTable, 300);
     });
   }
 
   [typeFilter, categoryFilter, fromDateInput, toDateInput].forEach((element) => {
-    if (element) element.addEventListener("change", populateTransactionsTable);
+    if (element) {
+      element.addEventListener("change", () => {
+        AdminState.transactionsPage = 1; // Reset to page 1 on filter change
+        populateTransactionsTable();
+      });
+    }
   });
 
   loadCategoryFilter();
@@ -41,6 +54,8 @@ async function populateTransactionsTable() {
     categoryId: document.getElementById("filterTxnCategory")?.value || "",
     fromDate: document.getElementById("txnFromDate")?.value || "",
     toDate: document.getElementById("txnToDate")?.value || "",
+    page: AdminState.transactionsPage || 1,
+    limit: 10,
   });
 
   const result = await fetchAdminTransactionApi(`/admin/api/transactions?${params.toString()}`);
@@ -53,14 +68,20 @@ async function populateTransactionsTable() {
       </tr>
     `;
     renderTransactionStats({});
+    renderTransactionsPagination(1, 1, 0, 10);
     return;
   }
 
   const transactions = result.data?.transactions || result.data?.items || [];
   const stats = result.data?.stats || result.data?.summary || {};
+  const page = result.data?.page || 1;
+  const totalPages = result.data?.totalPages || result.data?.total_pages || 1;
+  const totalItems = result.data?.total || result.data?.total_items || 0;
+  const limit = result.data?.limit || result.data?.per_page || 10;
 
   renderTransactionStats(stats);
   renderTransactionsTable(transactions);
+  renderTransactionsPagination(page, totalPages, totalItems, limit);
 }
 
 function renderTransactionsTable(transactions) {
@@ -111,6 +132,67 @@ function renderTransactionsTable(transactions) {
 
   document.querySelectorAll(".btn-transaction-detail").forEach((button) => {
     button.addEventListener("click", () => showTransactionDetail(button.dataset.id));
+  });
+}
+
+function renderTransactionsPagination(page, totalPages, totalItems, limit) {
+  const paginationEl = document.getElementById("transactionsPagination");
+  const infoEl = document.getElementById("transactionsPaginationInfo");
+  if (!paginationEl || !infoEl) return;
+
+  if (totalItems === 0) {
+    infoEl.innerText = "Hiển thị 0-0 trên 0 giao dịch";
+    paginationEl.innerHTML = "";
+    return;
+  }
+
+  const startItem = (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, totalItems);
+  infoEl.innerText = `Hiển thị ${startItem}-${endItem} trên ${totalItems} giao dịch`;
+
+  let html = "";
+
+  // Prev Button
+  const prevDisabled = page === 1 ? "disabled" : "";
+  html += `
+    <li class="page-item ${prevDisabled}">
+      <a class="page-link" href="#" data-page="${page - 1}" aria-label="Trước">
+        <span aria-hidden="true">&laquo; Trước</span>
+      </a>
+    </li>
+  `;
+
+  // Number Buttons
+  for (let i = 1; i <= totalPages; i++) {
+    const activeClass = i === page ? "active" : "";
+    html += `
+      <li class="page-item ${activeClass}">
+        <a class="page-link" href="#" data-page="${i}">${i}</a>
+      </li>
+    `;
+  }
+
+  // Next Button
+  const nextDisabled = page === totalPages ? "disabled" : "";
+  html += `
+    <li class="page-item ${nextDisabled}">
+      <a class="page-link" href="#" data-page="${page + 1}" aria-label="Sau">
+        <span aria-hidden="true">Sau &raquo;</span>
+      </a>
+    </li>
+  `;
+
+  paginationEl.innerHTML = html;
+
+  paginationEl.querySelectorAll(".page-link").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetPage = parseInt(link.dataset.page);
+      if (targetPage && targetPage !== page && targetPage >= 1 && targetPage <= totalPages) {
+        AdminState.transactionsPage = targetPage;
+        populateTransactionsTable();
+      }
+    });
   });
 }
 

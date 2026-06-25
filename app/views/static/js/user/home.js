@@ -416,7 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Thông tin cá nhân và bảo mật tài khoản",
       description: "Cập nhật thông tin liên hệ, đổi mật khẩu và quản lý gói Premium VIP.",
       cta: `
-        <button class="btn btn-main" type="button" onclick="alert('Tính năng nâng cấp Premium VIP!')">
+        <button class="btn btn-main" type="button" onclick="showToast('Tính năng nâng cấp Premium VIP!', 'info')">
           <i class="bi bi-gem"></i>
           <span>Đăng ký Premium</span>
         </button>
@@ -1039,18 +1039,19 @@ window.changePage = function(page) {
   }
 
   // --- HÀNH ĐỘNG XÓA GIAO DỊCH (Global click handler) ---
-  window.deleteTransaction = async function(id) {
-    if (!confirm("Bạn có chắc chắn muốn xóa giao dịch này không?")) return;
-    try {
-      const response = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
-      if (!response.ok) throw new Error("Lỗi khi xóa giao dịch");
-      
-      alert("Đã xóa giao dịch thành công!");
-      if (activeTab === "transactions") loadTransactions();
-      else loadHomeData();
-    } catch (err) {
-      alert("Lỗi: " + err.message);
-    }
+  window.deleteTransaction = function(id) {
+    showConfirmModal("Xác nhận xóa", "Bạn có chắc chắn muốn xóa giao dịch này không?", async () => {
+      try {
+        const response = await fetch(`/api/transactions/${id}`, { method: "DELETE" });
+        if (!response.ok) throw new Error("Lỗi khi xóa giao dịch");
+        
+        showToast("Đã xóa giao dịch thành công!", "success");
+        if (activeTab === "transactions") loadTransactions();
+        else loadHomeData();
+      } catch (err) {
+        showToast("Lỗi: " + err.message, "error");
+      }
+    });
   };
 
   // --- HÀNH ĐỘNG THÊM GIAO DỊCH ---
@@ -1094,13 +1095,13 @@ window.changePage = function(page) {
         }
         
         addForm.reset();
-        alert("Ghi chép giao dịch thành công!");
+        showToast("Ghi chép giao dịch thành công!", "success");
         
         if (activeTab === "transactions") loadTransactions();
         else loadHomeData();
         
       } catch (err) {
-        alert("Lỗi: " + err.message); 
+        showToast("Lỗi: " + err.message, "error"); 
       }
     });
   }
@@ -1167,13 +1168,13 @@ window.changePage = function(page) {
           modal.hide();
         }
         
-        alert("Cập nhật giao dịch thành công!");
+        showToast("Cập nhật giao dịch thành công!", "success");
         
         if (activeTab === "transactions") loadTransactions();
         else loadHomeData();
         
       } catch (err) {
-        alert("Lỗi: " + err.message);
+        showToast("Lỗi: " + err.message, "error");
       }
     });
   }
@@ -1391,12 +1392,12 @@ window.changePage = function(page) {
       if (!response.ok) throw new Error("Lỗi khi thiết lập ngân sách");
       const res = await response.json();
       
-      alert(res.message || "Đã lưu hạn mức ngân sách thành công!");
+      showToast(res.message || "Đã lưu hạn mức ngân sách thành công!", "success");
       const budgetForm = document.getElementById("setBudgetForm");
       if (budgetForm) budgetForm.reset();
       loadBudgetsTab();
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      showToast("Lỗi: " + err.message, "error");
     }
   }
 
@@ -1422,7 +1423,7 @@ window.changePage = function(page) {
 
       if (!response.ok) throw new Error("Lỗi khi thêm danh mục");
       
-      alert("Thêm danh mục thành công!");
+      showToast("Thêm danh mục thành công!", "success");
       const categoryForm = document.getElementById("createCategoryForm");
       if (categoryForm) categoryForm.reset();
       
@@ -1431,7 +1432,7 @@ window.changePage = function(page) {
       // Refill select options
       populateCategoryDropdowns();
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      showToast("Lỗi: " + err.message, "error");
     }
   }
 
@@ -1507,6 +1508,19 @@ window.changePage = function(page) {
       const response = await fetch("/api/analytics/trend/mom");
       if (!response.ok) throw new Error("Lỗi tải xu hướng danh mục");
       const res = await response.json();
+
+      if (res.status === "insufficient_data") {
+        loader.innerHTML = `
+          <div class="text-center py-4">
+            <div class="fs-2 mb-2">📊</div>
+            <h5 class="fw-bold mb-1 text-dark">Xu hướng chi tiêu</h5>
+            <p class="text-muted small mb-0">Chưa đủ dữ liệu để phân tích.<br>Hệ thống cần ít nhất 2 tháng dữ liệu để tính toán xu hướng tăng hoặc giảm.</p>
+          </div>
+        `;
+        loader.classList.remove("d-none");
+        resultBox.classList.add("d-none");
+        return;
+      }
 
       if (res.status === "success" && res.data) {
         const data = res.data;
@@ -1800,12 +1814,12 @@ window.changePage = function(page) {
         if (resBox) resBox.style.display = "block";
 
       } else {
-        alert("Lỗi từ AI: " + result.message);
+        showToast("Lỗi từ AI: " + result.message, "error");
         if (spinner) spinner.style.display = "none";
       }
 
     } catch (err) {
-      alert("Lỗi kết nối máy chủ phân loại AI.");
+      showToast("Lỗi kết nối máy chủ phân loại AI.", "error");
       if (spinner) spinner.style.display = "none";
     }
   }
@@ -1841,7 +1855,7 @@ window.changePage = function(page) {
 
       if (!response.ok) throw new Error("Không thể lưu giao dịch");
       
-      alert(`Đã lưu giao dịch ${formatCurrency(amount)} vào danh mục [${catName}] thành công!`);
+      showToast(`Đã lưu giao dịch ${formatCurrency(amount)} vào danh mục [${catName}] thành công!`, "success");
       
       // Reset form AI
       const aiForm = document.getElementById("aiInputForm");
@@ -1849,8 +1863,12 @@ window.changePage = function(page) {
       
       const resBox = document.getElementById("ai-result-container");
       if (resBox) resBox.style.display = "none";
+
+      // Refresh dữ liệu Dashboard, Analytics và Insights
+      loadHomeData();
+      loadAiHubTab();
     } catch (err) {
-      alert("Lỗi khi lưu giao dịch: " + err.message);
+      showToast("Lỗi khi lưu giao dịch: " + err.message, "error");
     }
   };
 
@@ -1869,14 +1887,14 @@ window.changePage = function(page) {
             body: formData
           });
           if (resUpdate.ok) {
-            alert("Cập nhật thông tin cá nhân thành công!");
+            showToast("Cập nhật thông tin cá nhân thành công!", "success");
             loadHomeData(); // Reload sidebar user info
             switchTab("settings"); // Reload lại tab settings
           } else {
-            alert("Lỗi khi cập nhật thông tin!");
+            showToast("Lỗi khi cập nhật thông tin!", "error");
           }
         } catch (err) {
-          alert("Lỗi kết nối: " + err.message);
+          showToast("Lỗi kết nối: " + err.message, "error");
         }
       };
     }
@@ -1893,7 +1911,7 @@ window.changePage = function(page) {
         const confirmPassEl = passwordForm.querySelector('input[name="confirm_new_password"]');
         
         if (newPassEl && confirmPassEl && newPassEl.value !== confirmPassEl.value) {
-          alert("Mật khẩu mới và mật khẩu xác nhận không khớp!");
+          showToast("Mật khẩu mới và mật khẩu xác nhận không khớp!", "warning");
           return;
         }
 
@@ -1903,13 +1921,13 @@ window.changePage = function(page) {
             body: formData
           });
           if (resPassword.ok) {
-            alert("Đổi mật khẩu thành công!");
+            showToast("Đổi mật khẩu thành công!", "success");
             passwordForm.reset();
           } else {
-            alert("Lỗi khi đổi mật khẩu!");
+            showToast("Lỗi khi đổi mật khẩu!", "error");
           }
         } catch (err) {
-          alert("Lỗi kết nối: " + err.message);
+          showToast("Lỗi kết nối: " + err.message, "error");
         }
       };
     }
@@ -1940,13 +1958,13 @@ window.changePage = function(page) {
               body: formData
             });
             if (resAvatar.ok) {
-              alert("Cập nhật ảnh đại diện thành công!");
+              showToast("Cập nhật ảnh đại diện thành công!", "success");
               loadHomeData(); // Cập nhật sidebar avatar
             } else {
-              alert("Lỗi tải ảnh đại diện!");
+              showToast("Lỗi tải ảnh đại diện!", "error");
             }
           } catch (err) {
-            alert("Lỗi upload: " + err.message);
+            showToast("Lỗi upload: " + err.message, "error");
           }
         }
       };
@@ -1967,6 +1985,36 @@ window.changePage = function(page) {
       return;
     }
 
+    // Tải 3 tin nhắn gần nhất từ database
+    async function loadChatHistory() {
+      try {
+        // Giữ lại tin nhắn chào đầu tiên nếu có
+        const welcomeMsg = chatMessages.querySelector(".message.bot:not(.typing-indicator-wrapper)");
+        chatMessages.innerHTML = "";
+        if (welcomeMsg) {
+          chatMessages.appendChild(welcomeMsg);
+        } else {
+          const welcome = document.createElement("div");
+          welcome.className = "message bot";
+          welcome.innerHTML = '<div class="message-content">Xin chào! Tôi là trợ lý tài chính AI. Tôi có thể giúp gì cho bạn hôm nay?</div>';
+          chatMessages.appendChild(welcome);
+        }
+
+        const response = await fetch("/api/ai/chat/history");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.messages) {
+            data.messages.forEach(msg => {
+              appendMessage(msg.sender, msg.text);
+            });
+            scrollToBottom();
+          }
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải lịch sử chatbot:", err);
+      }
+    }
+
     // Toggle đóng mở cửa sổ chat
     chatBubbleBtn.addEventListener("click", () => {
       // 1. Kiểm tra quyền Premium (Admin cũng được phép sử dụng)
@@ -1980,6 +2028,7 @@ window.changePage = function(page) {
       const isClosed = chatWindow.classList.contains("d-none");
       if (isClosed) {
         chatWindow.classList.remove("d-none");
+        loadChatHistory();
         scrollToBottom();
         setTimeout(() => chatInput.focus(), 100);
       } else {

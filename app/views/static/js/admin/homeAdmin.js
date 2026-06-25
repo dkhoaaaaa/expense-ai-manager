@@ -147,11 +147,7 @@ function triggerTabAction(tabId) {
 
 function performLogout(e) {
   e.preventDefault();
-
-  if (confirm("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản admin?")) {
-    clearAdminSession();
-    window.location.href = "/admin/login";
-  }
+  showLogoutConfirmModal(e.currentTarget || e.target);
 }
 
 function initLogoutController() {

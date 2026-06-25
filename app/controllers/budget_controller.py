@@ -10,28 +10,42 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 @jwt_required()
 def set_budget():
     user_id = get_jwt_identity()
-    data = request.json
+    data = request.json or {}
     
-    # Kiểm tra xem ngân sách cho danh mục/tháng/năm này đã tồn tại chưa
+    category_id = data.get("category_id")
+    month = data.get("month")
+    year = data.get("year")
+    limit_amount = data.get("limit_amount")
+    
+    if category_id is None or month is None or year is None or limit_amount is None:
+        return jsonify({"status": "error", "message": "Thiếu dữ liệu bắt buộc để thiết lập ngân sách"}), 400
+        
+    try:
+        category_id = int(category_id)
+        month = int(month)
+        year = int(year)
+        limit_amount = float(limit_amount)
+    except (TypeError, ValueError):
+        return jsonify({"status": "error", "message": "Dữ liệu ngân sách không hợp lệ"}), 400
+
     existing_budget = Budget.query.filter_by(
         user_id=user_id,
-        category_id=data["category_id"],
-        month=data["month"],
-        year=data["year"]
+        category_id=category_id,
+        month=month,
+        year=year
     ).first()
     
     if existing_budget:
-        # Cập nhật hạn mức thay vì tạo bản ghi trùng lặp
-        existing_budget.limit_amount = data["limit_amount"]
+        existing_budget.limit_amount = limit_amount
         db.session.commit()
         return jsonify({"status": "success", "message": "Hạn mức ngân sách đã được cập nhật thành công"})
         
     budget = Budget(
         user_id=user_id,
-        category_id=data["category_id"],
-        month=data["month"],
-        year=data["year"],
-        limit_amount=data["limit_amount"]
+        category_id=category_id,
+        month=month,
+        year=year,
+        limit_amount=limit_amount
     )
 
     db.session.add(budget)

@@ -205,6 +205,8 @@
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/user/userCommon.js') }}"></script>
     <script>
       document
         .getElementById("expenseForm")
@@ -318,13 +320,14 @@
               document.getElementById("resultContainer").style.display =
                 "block";
             } else {
-              alert("Lỗi từ API: " + result.message);
+              showToast("Lỗi từ API: " + result.message, "error");
               document.getElementById("loadingSpinner").style.display = "none";
             }
           } catch (error) {
             console.error("Error:", error);
-            alert(
+            showToast(
               "Không thể kết nối đến máy chủ Backend. Đảm bảo Flask đang chạy tại port 5000!",
+              "error"
             );
             document.getElementById("loadingSpinner").style.display = "none";
           }
@@ -372,7 +375,7 @@
       function saveTransaction() {
         const cat = document.getElementById("resCategory").innerText;
         const amt = document.getElementById("resAmount").innerText;
-        alert(`🎉 Đã lưu thành công ${amt} vào danh mục [${cat}]!`);
+        showToast(`Đã lưu thành công ${amt} vào danh mục [${cat}]!`, "success");
 
         // Reset lại form và ẩn UI
         document.getElementById("expenseForm").reset();

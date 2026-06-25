@@ -6,7 +6,6 @@ from datetime import timedelta
 from flask_jwt_extended import (
     JWTManager, get_jwt, verify_jwt_in_request
 )
-
 db = SQLAlchemy()
 
 # kết nối db

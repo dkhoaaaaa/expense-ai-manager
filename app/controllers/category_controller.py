@@ -12,13 +12,20 @@ def get_categories():
 
 
 def create_category():
-    data = request.json
+    data = request.json or {}
+    name = data.get("name")
+    if not name:
+        return jsonify({"status": "error", "message": "Thiếu dữ liệu bắt buộc (name)"}), 400
+        
     c = category_service.create_category(data)
 
     return jsonify({"id": c.id, "name": c.name})
 
 def update_category(category_id):
-    data = request.json
+    data = request.json or {}
+    name = data.get("name")
+    if not name:
+        return jsonify({"status": "error", "message": "Thiếu dữ liệu bắt buộc (name)"}), 400
 
     c = category_service.update_category(
         category_id,

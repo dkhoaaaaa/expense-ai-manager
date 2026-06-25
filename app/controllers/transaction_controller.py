@@ -111,13 +111,38 @@ def classify_transaction():
 @jwt_required()
 def create_transaction():
     user_id = get_jwt_identity()
-    data = request.json
-    t = transaction_service.create_transaction(user_id, data)
+    data = request.json or {}
+    
+    amount = data.get("amount")
+    tx_type = data.get("type")
+    category_id = data.get("category_id")
+    
+    if amount is None or not tx_type or category_id is None:
+        return jsonify({
+            "status": "error",
+            "message": "Thiếu dữ liệu bắt buộc"
+        }), 400
+        
+    try:
+        float(amount)
+        int(category_id)
+    except (ValueError, TypeError):
+        return jsonify({
+            "status": "error",
+            "message": "Thiếu dữ liệu bắt buộc"
+        }), 400
 
-    return jsonify({
-        "message": "Created successfully",
-        "id": t.id
-    })
+    try:
+        t = transaction_service.create_transaction(user_id, data)
+        return jsonify({
+            "message": "Created successfully",
+            "id": t.id
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Lỗi tạo giao dịch: {str(e)}"
+        }), 400
 
 
 # 📥 GET
@@ -178,6 +203,7 @@ def filter_transactions():
     - month=MM
     - year=YYYY
     - category_id
+    - type=THU/CHI
     """
     user_id = get_jwt_identity()
     query = Transaction.query.filter_by(idTK=user_id)
@@ -186,6 +212,7 @@ def filter_transactions():
     month = request.args.get("month")
     year = request.args.get("year")
     category_id = request.args.get("category_id")
+    tx_type = request.args.get("type")
 
     if date:
         try:
@@ -200,6 +227,8 @@ def filter_transactions():
        query = query.filter(extract("year", Transaction.ngayGiaoDich) == int(year))
     if category_id:
          query = query.filter(Transaction.category_id == int(category_id))
+    if tx_type:
+         query = query.filter(Transaction.loai == tx_type)
     data = query.all()
 
     return jsonify([

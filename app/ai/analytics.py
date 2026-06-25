@@ -26,8 +26,9 @@ class ExpenseAnalyzer:
             
             if len(months) < 2:
                 return {
-                    "status": "error", 
-                    "message": "Hệ thống cần ít nhất 2 tháng dữ liệu để tính toán xu hướng Tăng/Giảm."
+                    "status": "insufficient_data", 
+                    "message": "Chưa đủ dữ liệu để phân tích xu hướng.",
+                    "data": None
                 }
 
             # Lấy tháng mới nhất (Hiện tại) và tháng sát trước nó

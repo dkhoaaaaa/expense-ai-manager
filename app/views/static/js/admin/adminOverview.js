@@ -134,7 +134,9 @@ function populateRecentActivitiesTimeline(dashboardData) {
     "USER_SIGNUP": { icon: "bi-person-plus", class: "timeline-icon-signup" },
     "PREMIUM_PURCHASE": { icon: "bi-gem", class: "timeline-icon-premium" },
     "PAYMENT_SUCCESS": { icon: "bi-cash-coin", class: "timeline-icon-payment" },
-    "AI_PREDICTION": { icon: "bi-cpu", class: "timeline-icon-ai" }
+    "AI_PREDICTION": { icon: "bi-cpu", class: "timeline-icon-ai" },
+    "TRANSACTION_CREATED": { icon: "bi-credit-card", class: "timeline-icon-payment" },
+    "BUDGET_CREATED": { icon: "bi-pie-chart-fill", class: "timeline-icon-premium" }
   };
 
   activities.forEach(act => {

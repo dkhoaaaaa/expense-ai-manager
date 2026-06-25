@@ -19,11 +19,21 @@ class AdminTransactionService:
         if not validationResult["success"]:
             return validationResult
 
-        query = AdminTransactionService.baseQuery()
-        query = AdminTransactionService.applyFilters(query, validationResult["data"])
+        validatedData = validationResult["data"]
+        page = validatedData["page"]
+        limit = validatedData["limit"]
+        offset = (page - 1) * limit
 
-        rows = query.order_by(GiaoDich.ngayGiaoDich.desc(), GiaoDich.id.desc()).all()
+        query = AdminTransactionService.baseQuery()
+        query = AdminTransactionService.applyFilters(query, validatedData)
+
+        total_items = query.count()
+        total_pages = (total_items + limit - 1) // limit if total_items > 0 else 1
+
+        rows = query.order_by(GiaoDich.ngayGiaoDich.desc(), GiaoDich.id.desc()).offset(offset).limit(limit).all()
         transactions = [AdminTransactionService.buildTransactionItem(row) for row in rows]
+        
+        # stats tính trên bộ dữ liệu lọc hoàn chỉnh
         stats = AdminTransactionService.getTransactionStats(query)
 
         return {
@@ -35,7 +45,17 @@ class AdminTransactionService:
                 "categories": AdminTransactionService.getCategoryOptions(),
                 "items": transactions,
                 "summary": stats,
+                "page": page,
+                "limit": limit,
+                "total": total_items,
+                "totalPages": total_pages,
+                "total_items": total_items,
+                "total_pages": total_pages,
             },
+            "page": page,
+            "limit": limit,
+            "total": total_items,
+            "totalPages": total_pages,
         }
 
     @staticmethod
@@ -133,6 +153,16 @@ class AdminTransactionService:
                 "data": None,
             }
 
+        try:
+            page = max(1, int(filters.get("page", 1)))
+        except (ValueError, TypeError):
+            page = 1
+
+        try:
+            limit = max(1, int(filters.get("limit", 10)))
+        except (ValueError, TypeError):
+            limit = 10
+
         return {
             "success": True,
             "message": "Bo loc hop le",
@@ -142,6 +172,8 @@ class AdminTransactionService:
                 "categoryId": categoryId,
                 "fromDate": fromDate,
                 "toDate": toDate,
+                "page": page,
+                "limit": limit,
             },
         }
 
