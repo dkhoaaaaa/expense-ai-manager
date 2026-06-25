@@ -151,12 +151,44 @@ def api_activate_premium():
     if not user or not account:
         return jsonify({"success": False, "error": "Người dùng không tồn tại"}), 404
         
+    data = request.json or {}
+    payment_method = data.get('payment_method', 'BANKING').upper()
+    
+    from app.models.goiPremiumModel import GoiPremium
+    from app.models.thanhToanModel import ThanhToan
+    
     user.is_premium = True
     user.premium_start_date = datetime.utcnow()
     user.premium_end_date = datetime.utcnow() + timedelta(days=30)
     
     # Cập nhật vai trò tài khoản để đồng bộ hóa phân quyền
     account.vai_tro = 'PREMIUM'
+    
+    # Tạo bản ghi Gói Premium mới
+    new_goi = GoiPremium(
+        idTK=int(user_id),
+        tenGoi="PREMIUM",
+        gia=49000.00,
+        trangThai="ACTIVE",
+        ngayBatDau=datetime.utcnow(),
+        ngayKetThuc=datetime.utcnow() + timedelta(days=30),
+        ngayTao=datetime.utcnow()
+    )
+    db.session.add(new_goi)
+    db.session.flush() # Để sinh ID của gói premium cho khóa ngoại của bảng thanh_toan
+    
+    # Tạo bản ghi Ghi nhận Thanh toán mới
+    new_payment = ThanhToan(
+        idTK=int(user_id),
+        idGoiPremium=new_goi.id,
+        soTien=49000.00,
+        phuongThucThanhToan=payment_method,
+        trangThaiThanhToan="SUCCESS",
+        maGiaoDich=f"TXN{int(time.time())}{user_id}",
+        ngayThanhToan=datetime.utcnow(),
+        ngayTao=datetime.utcnow()
+    )
+    db.session.add(new_payment)
     
     db.session.commit()
     

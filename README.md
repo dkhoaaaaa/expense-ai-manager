@@ -81,8 +81,8 @@ expense-manager-ai/
  
 2. **Tạo môi trường ảo:**
    ```bash
-   python -m venv venv
-   venv\Scripts\activate
+   python -m venv venv  
+   .\venv\Scripts\Activate.ps1
    ```
  
 3. **Cài dependencies:**

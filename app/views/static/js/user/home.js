@@ -436,6 +436,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function switchTab(tabId) {
+    // Kiểm tra quyền Premium khi chuyển sang tab AI (AI Tài chính)
+    if (tabId === "ai" && !isPremium && userRole !== "ADMIN") {
+      window.location.href = "/premium";
+      return;
+    }
+
     activeTab = tabId;
     
     // Cập nhật trạng thái active trong sidebar & offcanvas

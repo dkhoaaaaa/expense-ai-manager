@@ -33,7 +33,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    payment_method: selectedMethod.toUpperCase()
+                })
             })
             .then(response => {
                 if (!response.ok) {
